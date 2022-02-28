@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.6.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dpp.opentakrouter", "dpp.opentakrouter\dpp.opentakrouter.csproj", "{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dpp.opentakrouter.Tests", "dpp.opentakrouter.Tests\dpp.opentakrouter.Tests.csproj", "{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{60D76D5C-4BB5-4AEB-A30B-E3C6139DBC8C}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|x64.Build.0 = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Debug|x86.Build.0 = Debug|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|x64.ActiveCfg = Release|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|x64.Build.0 = Release|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|x86.ActiveCfg = Release|Any CPU
+		{73115B5B-9E47-4D60-A3F8-5F92F55D15EA}.Release|x86.Build.0 = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|x64.Build.0 = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Debug|x86.Build.0 = Debug|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|x64.ActiveCfg = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|x64.Build.0 = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|x86.ActiveCfg = Release|Any CPU
+		{248DE885-E6F6-4981-A9D3-AF2BC76CB0C0}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5BD31DF3-5404-48BF-A94D-5D8F32045D5A}
+	EndGlobalSection
+EndGlobal
