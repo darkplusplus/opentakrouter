@@ -13,12 +13,14 @@ namespace dpp.opentakrouter
 {
     public class TakSession : TcpSession
     {
-        public TakSession(TcpServer server) : base(server)
+        private readonly Router _router;
+        public TakSession(TakServer server) : base(server)
         {
+            _router = server.Router;
         }
         protected override void OnConnected()
         {
-            Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint.ToString()} state=connected");
+            Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} state=connected");
         }
 
         protected override void OnDisconnected()
@@ -35,28 +37,20 @@ namespace dpp.opentakrouter
                 var evt = Event.Parse(msg);
                 if (evt.Type == "t-x-c-t")
                 {
-                    Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint.ToString()} type=event-cot-ping");
+                    Log.Debug($"id={Id} endpoint={Socket.RemoteEndPoint} type=event-cot-ping");
                     SendAsync(Event.Pong().ToXmlString());
                 }
                 else
                 {
-                    if (Server.Multicast(buffer, offset, size))
-                    {
-                        Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint.ToString()} type=event-cot propogate=success data={msg}");
-                    }
-                    else
-                    {
-                        Log.Warning($"id={Id} endpoint={Socket.RemoteEndPoint.ToString()} type=event-cot propogate=failure data={msg}");
-                    }
+                    _router.Send(evt, buffer);
                 }
             }
             catch (Exception e)
             {
                 // TODO: figure out how to guard against propogating bullshit, but forward just in case
-                _ = Server.Multicast(buffer, offset, size);
-                Log.Error(e, "id={Id} endpoint={Socket.RemoteEndPoint.ToString()} type=event-cot error=true forwarded=true");
+                _router.Send(null, buffer);
+                Log.Error(e, $"id={Id} endpoint={Socket.RemoteEndPoint} type=event-cot error=true forwarded=true");
             }
-            
         }
 
         protected override void OnError(SocketError error)

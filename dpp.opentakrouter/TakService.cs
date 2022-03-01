@@ -28,8 +28,6 @@ namespace dpp.opentakrouter
             return Task.CompletedTask;
         }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() => GC.SuppressFinalize(this);
     }
 }
