@@ -4,6 +4,7 @@ using System;
 
 using Serilog;
 using Serilog.Events;
+using Microsoft.Extensions.Configuration;
 
 namespace dpp.opentakrouter
 {
@@ -17,8 +18,19 @@ namespace dpp.opentakrouter
                 .WriteTo.Console()
                 .CreateLogger();
 
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .AddJsonFile("opentakrouter.json")//, true)
+                .Build();
+                
             await Host.CreateDefaultBuilder(args)
-                .ConfigureServices(services =>
+                .ConfigureAppConfiguration((context, builder) =>
+                {
+                    builder.Sources.Clear();
+                    builder.AddConfiguration(configuration);
+                })
+                .ConfigureServices((context, services) =>
                 {
                     services.AddHostedService<TakService>();
                 })

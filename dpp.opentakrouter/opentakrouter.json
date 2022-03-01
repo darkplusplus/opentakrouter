@@ -1,0 +1,28 @@
+{
+    "server": {
+        "tcp": {
+            "enabled": true,
+            "port": 8087
+        },
+        "tls": {
+            "enabled": true,
+            "port": 8089
+        },
+        "federation": [
+            {
+                "enabled": false,
+                "name": "foo",
+                "address": "12.23.45.67",
+                "port": 8087,
+                "protocol": "tcp"
+            },
+            {
+                "enabled": false,
+                "name": "bar",
+                "address": "12.23.45.67",
+                "port": 8089,
+                "protocol": "tls"
+            }
+        ]
+    }
+}

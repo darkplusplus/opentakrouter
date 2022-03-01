@@ -8,23 +8,46 @@ using System.Threading.Tasks;
 using Serilog;
 using NetCoreServer;
 using System.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace dpp.opentakrouter
 {
     public class TakService : IHostedService, IDisposable
     {
         private TakServer _server = null;
+        private IConfiguration configuration;
+        public TakService(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _server = new TakServer(IPAddress.Any, 8888);
-            _server.Start();
+            try
+            {
+                if (bool.Parse(configuration["server:tcp:enabled"]))
+                {
+                    var port = int.Parse(configuration["server:tcp:port"]);
+                    _server = new TakServer(IPAddress.Any, port);
+                    _server.Start();
+
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "state=error");
+                System.Environment.Exit(2);
+            }
             
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _server.Start();
+            if (_server is not null)
+            {
+                _server.Stop();
+            }
+            
             return Task.CompletedTask;
         }
 
