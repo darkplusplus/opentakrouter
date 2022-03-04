@@ -11,10 +11,10 @@ using Serilog;
 
 namespace dpp.opentakrouter
 {
-    public class TakSession : TcpSession
+    public class TakTlsSession : SslSession
     {
         private readonly Router _router;
-        public TakSession(TakServer server) : base(server)
+        public TakTlsSession(TakTlsServer server) : base(server)
         {
             _router = server.Router;
         }
@@ -30,26 +30,19 @@ namespace dpp.opentakrouter
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            string msg = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-
             try
             {
-                var evt = Event.Parse(msg);
-                if (evt.Type == "t-x-c-t")
+                var msg = Message.Parse(buffer, (int)offset, (int)size);
+                if (msg.Event.IsA(CotPredicates.t_ping))
                 {
-                    Log.Debug($"id={Id} endpoint={Socket.RemoteEndPoint} type=event-cot-ping");
                     SendAsync(Event.Pong().ToXmlString());
                 }
-                else
-                {
-                    _router.Send(evt, buffer);
-                }
+
+                _router.Send(msg.Event);
             }
             catch (Exception e)
             {
-                // TODO: figure out how to guard against propogating bullshit, but forward just in case
-                _router.Send(null, buffer);
-                Log.Error(e, $"id={Id} endpoint={Socket.RemoteEndPoint} type=event-cot error=true forwarded=true");
+                Log.Error(e, $"id={Id} endpoint={Socket.RemoteEndPoint} type=unknown error=true forwarded=false");
             }
         }
 

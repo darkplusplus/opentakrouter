@@ -14,12 +14,7 @@ namespace dpp.opentakrouter
 
         public void Send(Event e)                     
         {
-            Send(e, null);
-        }
-
-        public void Send(Event e, byte[] r)
-        {
-            OnRaiseRoutedEvent(new RoutedEventArgs(e, r));
+            OnRaiseRoutedEvent(new RoutedEventArgs(e));
         }
 
         protected virtual void OnRaiseRoutedEvent(RoutedEventArgs e)
@@ -31,13 +26,6 @@ namespace dpp.opentakrouter
     public class RoutedEventArgs : EventArgs
     {
         public Event Event { get; set; }
-        public byte[] Raw { get; set; }
-        public RoutedEventArgs(Event e, Byte[] r)
-        {
-            this.Event = e;
-            this.Raw = r;
-        }
-
         public RoutedEventArgs(Event e)
         {
             this.Event = e;

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="dpp.cot" Version="1.0.0" />
+    <PackageReference Include="dpp.cot" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="NetCoreServer" Version="5.1.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />

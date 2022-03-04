@@ -2,11 +2,15 @@
     "server": {
         "tcp": {
             "enabled": true,
-            "port": 8087
+            "port": 58087
         },
         "tls": {
-            "enabled": true,
-            "port": 8089
+            "enabled": false,
+            "port": 58089,
+            "server": {
+                "cert": "C:\\otr\\server.p12",
+                "passphrase": "atakatak"
+            }            
         },
         "federation": [
             {

@@ -11,31 +11,26 @@ using Serilog;
 
 namespace dpp.opentakrouter
 {
-    public class TakServer : TcpServer
+    public class TakTlsServer : SslServer
     {
         public Router Router;
 
-        public TakServer(IPAddress address, int port) : base(address, port)
+        public TakTlsServer(SslContext context, IPAddress address, int port, Router router) : base(context, address, port)
         {
-            this.Router = new Router();
+            this.Router = router == null ? new Router() : router;
             this.Router.RaiseRoutedEvent += OnRoutedEvent;
         }
 
-        protected override TcpSession CreateSession()
+        protected override SslSession CreateSession()
         {
-            return new TakSession(this);
+            return new TakTlsSession(this);
         }
 
         protected void OnRoutedEvent(object sender, RoutedEventArgs e)
         {
-            if (e.Raw is null)
-            {
-                _ = this.Multicast(e.Event.ToXmlString());
-            }
-            else
-            {
-                _ = this.Multicast(e.Raw, 0, e.Raw.Length);
-            }
+
+            var msg = new cot.Message() { Event = e.Event };
+            _ = this.Multicast(msg.ToXmlString());
         }
 
         protected override void OnError(SocketError error)
