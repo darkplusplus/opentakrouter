@@ -53,14 +53,17 @@ namespace dpp.opentakrouter
                         {
                             listenOptions.UseConnectionLogging();
                         });
-                        serverOptions.Listen(IPAddress.Any, 8443, listenOptions =>
+                        if (configuration.GetValue("server:web:ssl", false))
                         {
-                            listenOptions.UseConnectionLogging();
-                            listenOptions.UseHttps(
-                                configuration.GetValue<string>("server:web:cert"), 
-                                configuration.GetValue<string>("server:web:passphrase")
-                            );
-                        });
+                            serverOptions.Listen(IPAddress.Any, 8443, listenOptions =>
+                            {
+                                listenOptions.UseConnectionLogging();
+                                listenOptions.UseHttps(
+                                    configuration.GetValue<string>("server:web:cert"),
+                                    configuration.GetValue<string>("server:web:passphrase")
+                                );
+                            });
+                        }
                     });
                     builder.UseStartup<WebService>();
                 })

@@ -36,16 +36,16 @@ namespace dpp.opentakrouter
                     _tcpServer.Start();
                     Log.Information("server=tcp state=started");
                 }
-                if (bool.Parse(configuration["server:tls:enabled"]))
+                if (bool.Parse(configuration["server:ssl:enabled"]))
                 {
-                    var cert = configuration["server:tls:server:cert"];
-                    var passphrase = configuration["server:tls:server:passphrase"];
+                    var cert = configuration["server:ssl:server:cert"];
+                    var passphrase = configuration["server:ssl:server:passphrase"];
                     var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(cert, passphrase));
 
-                    var port = int.Parse(configuration["server:tls:port"]);
+                    var port = int.Parse(configuration["server:ssl:port"]);
                     _tlsServer = new TakTlsServer(sslContext, IPAddress.Any, port, router);
                     _tlsServer.Start();
-                    Log.Information("server=tls state=started");
+                    Log.Information("server=ssl state=started");
                 }
             }
             catch (Exception e)

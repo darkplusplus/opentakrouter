@@ -46,8 +46,10 @@ namespace dpp.opentakrouter.Controllers
             _logger = logger;
             _configuration = configuration;
 
-            var dataDir = _configuration.GetValue("server:data", Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
-            var dbPath = Path.Combine(dataDir, "data.db");
+            var dataDir = Environment.ExpandEnvironmentVariables(
+                _configuration.GetValue("server:data", System.AppContext.BaseDirectory)
+            );
+            var dbPath = Path.Combine(dataDir, "opentakrouter.db");
             var options = new SQLiteConnectionString(
                 dbPath, 
                 SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex, 

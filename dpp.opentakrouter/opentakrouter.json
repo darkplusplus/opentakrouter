@@ -1,39 +1,29 @@
 {
     "AllowedHosts": "*",
     "server": {
-        "data":  "C:\\otr",
+        // set the data directory. this defaults to the executable location
+        //"data": "%appdata%/opentakrouter.db",
+
+        // the api interface configuration
         "web": {
             "swagger": true,
-            "cert": "C:\\otr\\server.p12",
+            "ssl": false,
+            "cert": "server.p12",
             "passphrase": "atakatak"
         },
+
+        // the tak protocol configurations
         "tcp": {
             "enabled": true,
             "port": 58087
         },
-        "tls": {
-            "enabled": true,
+        "ssl": {
+            "enabled": false,
             "port": 58089,
             "server": {
-                "cert": "C:\\otr\\server.p12",
+                "cert": "server.p12",
                 "passphrase": "atakatak"
             }
-        },
-        "federation": [
-            {
-                "enabled": false,
-                "name": "foo",
-                "address": "12.23.45.67",
-                "port": 8087,
-                "protocol": "tcp"
-            },
-            {
-                "enabled": false,
-                "name": "bar",
-                "address": "12.23.45.67",
-                "port": 8089,
-                "protocol": "tls"
-            }
-        ]
+        }
     }
 }

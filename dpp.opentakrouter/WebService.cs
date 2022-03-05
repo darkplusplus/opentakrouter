@@ -47,8 +47,10 @@ namespace dpp.opentakrouter
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OpenTakRouter v1"));
             }
-            
-            app.UseHttpsRedirection();
+            if (Configuration.GetValue("server:web:ssl", false))
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseRouting();
 
