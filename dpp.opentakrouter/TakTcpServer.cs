@@ -17,7 +17,7 @@ namespace dpp.opentakrouter
 
         public TakTcpServer(IPAddress address, int port, Router? router) : base(address, port)
         {
-            this.Router = router == null ? new Router(): router;
+            this.Router = router ?? new Router();
             this.Router.RaiseRoutedEvent += OnRoutedEvent;
         }
 

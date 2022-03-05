@@ -1,16 +1,23 @@
 {
+    "AllowedHosts": "*",
     "server": {
+        "data":  "C:\\otr",
+        "web": {
+            "swagger": true,
+            "cert": "C:\\otr\\server.p12",
+            "passphrase": "atakatak"
+        },
         "tcp": {
             "enabled": true,
             "port": 58087
         },
         "tls": {
-            "enabled": false,
+            "enabled": true,
             "port": 58089,
             "server": {
                 "cert": "C:\\otr\\server.p12",
                 "passphrase": "atakatak"
-            }            
+            }
         },
         "federation": [
             {

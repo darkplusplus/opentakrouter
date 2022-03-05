@@ -36,7 +36,7 @@ namespace dpp.opentakrouter
                 if (msg.Event.IsA(CotPredicates.t_ping))
                 {
                     Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot-ping");
-                    SendAsync(Event.Pong().ToXmlString());
+                    SendAsync(Event.Pong(msg.Event).ToXmlString());
                 }
 
                 Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot type={msg.Event.Type}");

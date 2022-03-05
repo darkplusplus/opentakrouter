@@ -35,7 +35,8 @@ namespace dpp.opentakrouter
                 var msg = Message.Parse(buffer, (int)offset, (int)size);
                 if (msg.Event.IsA(CotPredicates.t_ping))
                 {
-                    SendAsync(Event.Pong().ToXmlString());
+                    Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot-ping");
+                    SendAsync(Event.Pong(msg.Event).ToXmlString());
                 }
 
                 _router.Send(msg.Event);
