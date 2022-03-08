@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"] - OpenTakRouter</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="/lib/fontsource/200.css">
+    <link rel="stylesheet" href="/lib/fontsource/300.css">
+    <link rel="stylesheet" href="/lib/fontsource/400.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/lib/admin-lte/css/adminlte.min.css">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="hold-transition sidebar-mini">
+    <!-- Site wrapper -->
+    <div class="wrapper">
+
+        <!-- Main Sidebar Container -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- Brand Logo -->
+            <a href="/#" class="brand-link">
+                <span class="brand-text font-weight-light">OpenTakRouter</span>
+            </a>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+
+
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <!-- Add icons to the links using the .nav-icon class
+                             with font-awesome or any other icon font library -->
+
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">
+                                <i class="nav-icon fas fa-house"></i>
+                                <p>
+                                    Home
+                                </p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/map" class="nav-link">
+                                <i class="nav-icon fas fa-map-location"></i>
+                                <p>
+                                    Map
+                                </p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/clients" class="nav-link">
+                                <i class="nav-icon fas fa-mobile"></i>
+                                <p>
+                                    Clients
+                                </p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/datapackages" class="nav-link">
+                                <i class="nav-icon fas fa-cubes"></i>
+                                <p>
+                                    Data Packages
+                                </p>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- /.sidebar-menu -->
+            </div>
+            <!-- /.sidebar -->
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <div class="container-fluid">
+                    <h3>@ViewData["Title"]</h3>
+                </div><!-- /.container-fluid -->
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+
+                <!-- Default box -->
+                <div class="card">
+                    <div class="card-body">
+                        @RenderBody()
+                    </div>
+                    <!-- /.card-body -->
+                    
+                </div>
+                <!-- /.card -->
+
+            </section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+
+
+    </div>
+    <!-- ./wrapper -->
+    <!-- jQuery -->
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <!-- AdminLTE App -->
+    <script src="lib/admin-lte/js/adminlte.min.js"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

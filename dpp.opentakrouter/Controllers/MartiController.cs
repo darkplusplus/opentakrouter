@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using dpp.opentakrouter.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,49 +16,25 @@ using System.Threading.Tasks;
 
 namespace dpp.opentakrouter.Controllers
 {
-    public class DataPackage
-    {
-        [PrimaryKey, AutoIncrement]
-        public int PrimaryKey { get; set; }
-        public string UID { get; set; }
-        public string Name { get; set; }
-        public string Hash { get; set; }
-        public DateTime SubmissionDateTime { get; set; } = DateTime.Now;
-        public string SubmissionUser { get; set; }
-        public string CreatorUid { get; set; }
-        public string Keywords { get; set; }
-        public string MIMEType { get; set; }
-        public long Size { get; set; }
-        public bool IsPrivate { get; set; }
-
-        public byte[] Content { get; set; }
-    }
-
     [ApiController]
     [Route("[controller]")]
     public class MartiController : ControllerBase
     {
         private readonly ILogger<MartiController> _logger;
         private readonly IConfiguration _configuration;
-        private SQLiteConnection _db;
+        private readonly IDataPackageRepository _datapackages;
 
-        public MartiController(ILogger<MartiController> logger, IConfiguration configuration)
+        private string _endpoint = "localhost";
+        private int _port = 8080;
+
+        public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages)
         {
             _logger = logger;
             _configuration = configuration;
+            _datapackages = datapackages;
 
-            var dataDir = Environment.ExpandEnvironmentVariables(
-                _configuration.GetValue("server:data", System.AppContext.BaseDirectory)
-            );
-            var dbPath = Path.Combine(dataDir, "opentakrouter.db");
-            var options = new SQLiteConnectionString(
-                dbPath, 
-                SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex, 
-                true, 
-                null, null, null, null);
-
-            _db = new SQLiteConnection(options);
-            _db.CreateTable<DataPackage>();
+            _endpoint = _configuration.GetValue("server:web:endpoint", Dns.GetHostName());
+            _port = _configuration.GetValue("server:web:port", 8080);
         }
 
         [Route("/Marti/api/clientEndPoints")]
@@ -119,10 +96,10 @@ namespace dpp.opentakrouter.Controllers
         [HttpGet]
         public object SearchDatapackages(string? keywords="", string? tool="")
         {
-            var packages = new List<Dictionary<string, object>>();
-            var query = _db.Table<DataPackage>().Where(dp => dp.Keywords.Contains(keywords));
-            //var query = _db.Table<DataPackage>();
-            foreach (var dp in query)
+            // TODO: add logic for `tool` param to control package privacy
+
+            List<Dictionary<string, object>> packages = new List<Dictionary<string, object>>();
+            foreach (var dp in _datapackages.Search(keywords))
             {
                 packages.Add(new Dictionary<string, object>()
                 {
@@ -139,7 +116,6 @@ namespace dpp.opentakrouter.Controllers
                     { "Visibility", dp.IsPrivate ? "private" : "public" }
                 });
             }
-
             
             return new Dictionary<string, object>()
             {
@@ -154,9 +130,12 @@ namespace dpp.opentakrouter.Controllers
         {
             try
             {
-                var dp = _db.Table<DataPackage>().Where(dp => dp.Hash == hash).First();
+                var dp = _datapackages.Get(hash);
 
-                return new FileContentResult(dp.Content, dp.MIMEType);
+                return new FileContentResult(dp.Content, dp.MIMEType)
+                {
+                    FileDownloadName = dp.UID
+                };
             }
             catch(Exception e)
             {
@@ -175,42 +154,15 @@ namespace dpp.opentakrouter.Controllers
                     : "Anonymous";
 
                 var file = Request.Form.Files[0];
-                var name = Path.GetFileNameWithoutExtension(file.FileName);
-                var isPrivate = visibility.Equals("private");
-                
-                byte[] content;
-                using (var ms = new MemoryStream())
-                {
-                    file.CopyTo(ms);
-                    content = ms.ToArray();
-                }
 
-                var dp = new DataPackage()
-                {
-                    UID = filename,
-                    Name = name,
-                    Hash = hash,
-                    SubmissionDateTime = DateTime.Now,
-                    SubmissionUser = user,
-                    CreatorUid = creatorUid,
-                    Keywords = keywords,
-                    MIMEType = file.ContentType,
-                    Size = file.Length,
-                    IsPrivate = isPrivate,
-                    Content = content,
-                };
-
-                _db.Insert(dp);
+                _datapackages.Add(file, hash, filename, user, creatorUid, keywords, visibility);
             }
             catch(Exception e)
             {
                 return StatusCode(500, $"{e.Message}");
             }
 
-            var endpoint = _configuration.GetValue("server:web:endpoint", Dns.GetHostName());
-            var port = _configuration.GetValue("server:web", 5001);
-
-            return Ok($"https://{endpoint}:{port}/Marti/sync/content?hash={hash}");
+            return Ok($"https://{_endpoint}:{_port}/Marti/sync/content?hash={hash}");
         }
 
         [Route("/Marti/api/sync/metadata/{hash}/tool")]
@@ -219,14 +171,11 @@ namespace dpp.opentakrouter.Controllers
         {
             try
             {
-                var dp = _db.Table<DataPackage>().Where(dp => dp.Hash == hash).First();
+                var dp = _datapackages.Get(hash);
                 dp.IsPrivate = !Request.Body.ToString().Contains("public");
-                _db.Update(dp);
+                _datapackages.Update(dp);
 
-                var endpoint = _configuration.GetValue("server:web:endpoint", Dns.GetHostName());
-                var port = _configuration.GetValue("server:web", 5001);
-
-                return Ok($"https://{endpoint}:{port}/Marti/sync/content?hash={hash}");
+                return Ok($"https://{_endpoint}:{_port}/Marti/sync/content?hash={hash}");
             }
             catch
             {
@@ -240,16 +189,15 @@ namespace dpp.opentakrouter.Controllers
         {
             try
             {
-                var dp = _db.Table<DataPackage>().Where(dp => dp.Hash == hash).FirstOrDefault();
+                var dp = _datapackages.Get(hash);
                 if (dp is null)
                 {
                     return NotFound();
                 }
 
-                var endpoint = _configuration.GetValue("server:web:endpoint", Dns.GetHostName());
-                var port = _configuration.GetValue("server:web", 5001);
+                
 
-                return Ok($"https://{endpoint}:{port}/Marti/sync/content?hash={hash}");
+                return Ok($"https://{_endpoint}:{_port}/Marti/sync/content?hash={hash}");
             }
             catch(Exception e)
             {

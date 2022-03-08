@@ -34,7 +34,7 @@ namespace dpp.opentakrouter
                 .AddCommandLine(args)
                 .AddJsonFile("opentakrouter.json", true)
                 .Build();
-
+            
             await Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
@@ -43,6 +43,8 @@ namespace dpp.opentakrouter
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    services.AddScoped<IDatabaseContext, DatabaseContext>();
+                    services.AddScoped<IDataPackageRepository, DataPackageRepository>();
                     services.AddHostedService<TakService>();
                 })
                 .ConfigureWebHostDefaults(builder =>

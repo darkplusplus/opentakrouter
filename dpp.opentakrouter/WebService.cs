@@ -27,16 +27,15 @@ namespace dpp.opentakrouter
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllersWithViews();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OpenTakRouter", Version = "v1" });
             });
-            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             if (Configuration.GetValue("server:web:developer_mode", false))
             {
@@ -51,6 +50,7 @@ namespace dpp.opentakrouter
             {
                 app.UseHttpsRedirection();
             }
+            app.UseStaticFiles();
 
             app.UseRouting();
 

@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Map";
+}
+@section Styles {
+<link rel="stylesheet" href="/lib/leaflet/leaflet.min.css" />
+<style>
+    #map { height: 90vh; }
+</style>
+}
+
+<div class="text-center">
+    <div id="map"></div>
+</div>
+
+@section Scripts {
+<script src="lib/leaflet/leaflet.min.js"></script>
+<script>
+    var map = L.map('map').setView([30, -30], 3);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+</script>
+}

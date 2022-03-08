@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "dpp.opentakrouter": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

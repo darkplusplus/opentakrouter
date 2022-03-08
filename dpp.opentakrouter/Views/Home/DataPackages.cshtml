@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "Data Packages";
+}
+
+<div class="text-center">
+    <section class="content">
+
+        <div class="card"> 
+            <div class="card-body table-responsive p-0" style="height: 90vh;">
+                <table class="table table-head-fixed text-nowrap">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">
+                                Id
+                            </th>
+                            <th>
+                                Name
+                            </th>
+                            <th style="width: 30%">
+                                Timestamp
+                            </th>
+                            <th>
+                                Uploader
+                            </th>
+                            <th style="width: 5%">
+                                Size
+                            </th>
+                            <th style="width: 20%">
+                                <!-- actions -->
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var package in ViewData["datapackages"] as IEnumerable<DataPackage>)
+                        {
+                            <tr>
+                                <td>@package.UID</td>
+                                <td>@package.Name</td>
+                                <td>@package.SubmissionDateTime.ToUniversalTime().ToString("u")</td>
+                                <td>@package.SubmissionUser</td>
+                                <td>@package.Size</td>
+
+                                <td class="project-actions text-right">
+                                    <a class="btn btn-primary btn-sm" href="/Marti/sync/content?hash=@package.Hash">
+                                        <i class="fas fa-folder">
+                                        </i>
+                                        Download
+                                    </a>
+                                    <!-- TODO: allow delete -->
+                                    <button type="button" class="btn btn-danger btn-sm" disabled>
+                                        <i class="fas fa-trash">
+                                        </i>
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+

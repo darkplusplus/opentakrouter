@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+
+    var devicesCount = 12;
+    var usersCount = 34;
+    var datapackagesCount = 56;
+    var eventsCount = 78;
+}
+
+<div class="text-center">
+    <div class="row">
+        <div class="col-md-3 col-sm-6 col-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="far fa-mobile"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Devices</span>
+                    <span class="info-box-number">@devicesCount</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-danger"><i class="far fa-user"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Users</span>
+                    <span class="info-box-number">@usersCount</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-success"><i class="far fa-cubes"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Packages</span>
+                    <span class="info-box-number">@datapackagesCount</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-warning"><i class="far fa-message"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Fresh Events</span>
+                    <span class="info-box-number">@eventsCount</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

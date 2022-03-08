@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Clients";
+}
+
+<div class="text-center">
+    <section class="content">
+        <div class="card">
+            <div class="card-body table-responsive p-0" style="height: 90vh;">
+                <table class="table table-head-fixed text-nowrap">
+                    <thead>
+                        <tr>
+                            <th>UID</th>
+                            <th>Callsign</th>
+                            <th>Last Seen</th>
+                            <th>Status</th>
+                            <th>Device</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>J-123</td>
+                            <td>FLEETWOOD</td>
+                            <td>2022-02-22T22:22:22.222Z</td>
+                            <td><span class="tag tag-success">Connected</span></td>
+                            <td>SAMSUNG-9000</td>
+                            <td>
+                                <!-- TODO: allow disconnect -->
+                                <button type="button" class="btn btn-danger btn-sm" disabled>
+                                    <i class="fas fa-trash">
+                                    </i>
+                                    Disconnect
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
