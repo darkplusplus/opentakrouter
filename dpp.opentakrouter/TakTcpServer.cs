@@ -13,11 +13,11 @@ namespace dpp.opentakrouter
 {
     public class TakTcpServer : TcpServer
     {
-        public Router Router;
+        public IRouter Router;
 
-        public TakTcpServer(IPAddress address, int port, Router? router) : base(address, port)
+        public TakTcpServer(IPAddress address, int port, IRouter router) : base(address, port)
         {
-            this.Router = router ?? new Router();
+            this.Router = router;
             this.Router.RaiseRoutedEvent += OnRoutedEvent;
         }
 

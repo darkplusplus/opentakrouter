@@ -14,11 +14,15 @@ namespace dpp.opentakrouter.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        IClientRepository _clients;
+        IMessageRepository _messages;
         IDataPackageRepository _datapackages;
-
-        public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages)
+        
+        public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages, IClientRepository clients, IMessageRepository messages)
         {
             _logger = logger;
+            _clients = clients;
+            _messages = messages;
             _datapackages = datapackages;
         }
 
@@ -40,6 +44,8 @@ namespace dpp.opentakrouter.Controllers
         [HttpGet]
         public IActionResult Clients()
         {
+            ViewData.Add("clients", _clients.Search().OrderBy(c => c.LastSeen));
+
             return View();
         }
 
@@ -48,7 +54,6 @@ namespace dpp.opentakrouter.Controllers
         public IActionResult DataPackages()
         {
             ViewData.Add("datapackages", _datapackages.Search().OrderBy(dp => dp.SubmissionDateTime));
-            //ViewData.Add("datapackages", new List<DataPackage>());
 
             return View();
         }

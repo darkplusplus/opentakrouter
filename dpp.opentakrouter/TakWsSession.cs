@@ -11,34 +11,29 @@ using Serilog;
 
 namespace dpp.opentakrouter
 {
-    public class TakTcpSession : TcpSession
+    public class TakWsSession : WsSession
     {
         private readonly IRouter _router;
-        public TakTcpSession(TakTcpServer server) : base(server)
+        public TakWsSession(TakWsServer server) : base(server)
         {
             _router = server.Router;
         }
-        protected override void OnConnected()
+        public override void OnWsConnected(HttpRequest request)
         {
             Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} state=connected");
         }
 
-        protected override void OnDisconnected()
+        public override void OnWsDisconnected()
         {
             Log.Information($"id={Id} state=disconnected");
         }
 
-        protected override void OnReceived(byte[] buffer, long offset, long size)
+        public override void OnWsReceived(byte[] buffer, long offset, long size)
         {
             try
             {
                 var msgstr = Encoding.UTF8.GetString(buffer);
                 var msg = Message.Parse(buffer, (int)offset, (int)size);
-                if (msg.Event.IsA(CotPredicates.t_ping))
-                {
-                    Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot-ping");
-                    SendAsync(Event.Pong(msg.Event).ToXmlString());
-                }
 
                 Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot type={msg.Event.Type}");
                 _router.Send(msg.Event);

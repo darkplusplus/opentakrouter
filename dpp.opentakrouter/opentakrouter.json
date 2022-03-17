@@ -24,6 +24,10 @@
                 "cert": "server.p12",
                 "passphrase": "atakatak"
             }
+        },
+        "ws": {
+            "enabled": true,
+            "port": 55000
         }
     }
 }

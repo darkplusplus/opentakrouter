@@ -1,7 +1,8 @@
 {
   "profiles": {
     "dpp.opentakrouter": {
-      "commandName": "Project"
+        "commandName": "Project",
+        "hotReloadProfile": "aspnetcore"
     },
     "Docker": {
       "commandName": "Docker"

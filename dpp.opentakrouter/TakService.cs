@@ -18,15 +18,16 @@ namespace dpp.opentakrouter
     {
         private TakTcpServer _tcpServer = null;
         private TakTlsServer _tlsServer = null;
+        private TakWsServer _wsServer = null;
+        private readonly IRouter router;
         private readonly IConfiguration configuration;
-        public TakService(IConfiguration configuration)
+        public TakService(IConfiguration configuration, IRouter router)
         {
             this.configuration = configuration;
+            this.router = router;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var router = new Router();
-
             try
             {
                 if (bool.Parse(configuration["server:tcp:enabled"]))
@@ -46,6 +47,13 @@ namespace dpp.opentakrouter
                     _tlsServer = new TakTlsServer(sslContext, IPAddress.Any, port, router);
                     _tlsServer.Start();
                     Log.Information("server=ssl state=started");
+                }
+                if (bool.Parse(configuration["server:ws:enabled"]))
+                {
+                    var port = int.Parse(configuration["server:ws:port"] ?? "5003");
+                    _wsServer = new TakWsServer(IPAddress.Any, port, router);
+                    _wsServer.Start();
+                    Log.Information("server=ws state=started");
                 }
             }
             catch (Exception e)

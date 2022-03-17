@@ -9,21 +9,23 @@
                 <table class="table table-head-fixed text-nowrap">
                     <thead>
                         <tr>
-                            <th>UID</th>
                             <th>Callsign</th>
-                            <th>Last Seen</th>
-                            <th>Status</th>
                             <th>Device</th>
+                            <th>Platform</th>
+                            <th>Version</th>
+                            <th>LastSeen</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach (var client in ViewData["clients"] as IEnumerable<Client>)
+                        {
                         <tr>
-                            <td>J-123</td>
-                            <td>FLEETWOOD</td>
-                            <td>2022-02-22T22:22:22.222Z</td>
-                            <td><span class="tag tag-success">Connected</span></td>
-                            <td>SAMSUNG-9000</td>
+                            <td>@client.Callsign</td>
+                            <td>@client.Device</td>
+                            <td>@client.Platform</td>
+                            <td>@client.Version</td>
+                            <td>@client.LastSeen.ToUniversalTime().ToString("u")</td>
                             <td>
                                 <!-- TODO: allow disconnect -->
                                 <button type="button" class="btn btn-danger btn-sm" disabled>
@@ -33,6 +35,7 @@
                                 </button>
                             </td>
                         </tr>
+                        }
                     </tbody>
                 </table>
             </div>

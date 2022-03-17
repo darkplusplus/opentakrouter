@@ -13,7 +13,7 @@ namespace dpp.opentakrouter
 {
     public class TakTlsSession : SslSession
     {
-        private readonly Router _router;
+        private readonly IRouter _router;
         public TakTlsSession(TakTlsServer server) : base(server)
         {
             _router = server.Router;
