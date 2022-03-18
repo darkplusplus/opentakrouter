@@ -15,7 +15,6 @@ DIST_DIR="$SCRIPT_DIR/../dist"
 mkdir -p $DIST_DIR
 
 dotnet clean
-dotnet build dpp.opentakrouter -c Release
 
 # windows
 dotnet publish dpp.opentakrouter -c Release -r win10-x64 --self-contained=true 
