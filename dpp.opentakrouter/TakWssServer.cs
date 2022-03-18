@@ -11,19 +11,19 @@ using Serilog;
 
 namespace dpp.opentakrouter
 {
-    public class TakWsServer : WsServer
+    public class TakWssServer : WssServer
     {
         public IRouter Router;
 
-        public TakWsServer(IPAddress address, int port, IRouter router) : base(address, port)
+        public TakWssServer(SslContext context, IPAddress address, int port, IRouter router) : base(context, address, port)
         {
             this.Router = router;
             this.Router.RaiseRoutedEvent += OnRoutedEvent;
         }
 
-        protected override WsSession CreateSession()
+        protected override WssSession CreateSession()
         {
-            return new TakWsSession(this);
+            return new TakWssSession(this);
         }
 
         protected void OnRoutedEvent(object sender, RoutedEventArgs e)

@@ -24,8 +24,8 @@ namespace dpp.opentakrouter.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDataPackageRepository _datapackages;
 
-        private string _endpoint = "localhost";
-        private int _port = 8080;
+        private readonly string _endpoint = "localhost";
+        private readonly int _port = 8080;
 
         public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages)
         {
@@ -98,7 +98,7 @@ namespace dpp.opentakrouter.Controllers
         {
             // TODO: add logic for `tool` param to control package privacy
 
-            List<Dictionary<string, object>> packages = new List<Dictionary<string, object>>();
+            List<Dictionary<string, object>> packages = new();
             foreach (var dp in _datapackages.Search(keywords))
             {
                 packages.Add(new Dictionary<string, object>()

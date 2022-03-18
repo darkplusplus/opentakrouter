@@ -10,7 +10,7 @@ namespace dpp.opentakrouter
     public class ClientRepository : IClientRepository
     {
         private readonly IDatabaseContext _context;
-        private SQLiteConnection _db;
+        private readonly SQLiteConnection _db;
 
         public ClientRepository(IDatabaseContext context)
         {
