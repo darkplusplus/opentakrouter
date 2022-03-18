@@ -21,6 +21,6 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
-      
-    - name: Test
-      run: dotnet test --verbosity normal -r linux-x64
+
+    - name: Build
+      run: dotnet build dpp.opentakrouter -r linux-x64
