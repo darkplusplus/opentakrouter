@@ -21,7 +21,7 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var ws = new WebSocket("ws://localhost:55000");
+    var ws = new WebSocket(`ws://${window.location.hostname}:@ViewData["ws-port"]`);
     ws.onopen = () => {
         console.log("connected!")
     }
@@ -36,7 +36,7 @@
             $(cot).find("point").attr("lat"),
             $(cot).find("point").attr("lon")
         ];
-        var callsign = $(cot).find("contact").attr("callsign") || $(cot).find("event").attr("uid")
+        var callsign = $(cot).find("contact").attr("callsign") || $(cot).find("event").attr("uid");
         var popup = `<b><span>${callsign}</span></b>&nbsp${type}`;
 
         console.log({

@@ -1,0 +1,31 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+
+    - name: Release
+      run: scripts/release.sh
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/*
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

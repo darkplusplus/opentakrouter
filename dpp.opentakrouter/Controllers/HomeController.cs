@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using dpp.opentakrouter.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace dpp.opentakrouter.Controllers
 {
@@ -17,13 +18,15 @@ namespace dpp.opentakrouter.Controllers
         IClientRepository _clients;
         IMessageRepository _messages;
         IDataPackageRepository _datapackages;
+        IConfiguration _configuration;
         
-        public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages, IClientRepository clients, IMessageRepository messages)
+        public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages, IClientRepository clients, IMessageRepository messages, IConfiguration configuration)
         {
             _logger = logger;
             _clients = clients;
             _messages = messages;
             _datapackages = datapackages;
+            _configuration = configuration;
         }
 
         [Route("/")]
@@ -37,6 +40,7 @@ namespace dpp.opentakrouter.Controllers
         [HttpGet]
         public IActionResult Map()
         {
+            ViewData.Add("ws-port", _configuration["server:ws:port"] ?? "55000");
             return View();
         }
 
