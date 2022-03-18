@@ -6,6 +6,7 @@
 
         // the api interface configuration
         "web": {
+            "port": 8080,
             "swagger": true,
             "ssl": false,
             "cert": "server.p12",

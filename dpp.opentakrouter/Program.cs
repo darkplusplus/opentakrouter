@@ -13,6 +13,8 @@ using Serilog;
 using Serilog.Events;
 using Microsoft.Extensions.Configuration;
 using System.Net;
+using System.Diagnostics;
+using System.IO;
 
 namespace dpp.opentakrouter
 {
@@ -34,6 +36,9 @@ namespace dpp.opentakrouter
                 .AddCommandLine(args)
                 .AddJsonFile("opentakrouter.json", true)
                 .Build();
+
+            var dataDir = Path.GetFullPath(configuration.GetValue("server:data", Path.GetDirectoryName(
+                Process.GetCurrentProcess().MainModule.FileName)));
             
             await Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
@@ -52,21 +57,25 @@ namespace dpp.opentakrouter
                 })
                 .ConfigureWebHostDefaults(builder =>
                 {
+                    builder.UseContentRoot(dataDir);
                     builder.ConfigureKestrel((context, serverOptions) =>
                     {
-                        serverOptions.Listen(IPAddress.Any, 8080, listenOptions =>
-                        {
-                            listenOptions.UseConnectionLogging();
-                        });
                         if (configuration.GetValue("server:web:ssl", false))
                         {
-                            serverOptions.Listen(IPAddress.Any, 8443, listenOptions =>
+                            serverOptions.Listen(IPAddress.Any, configuration.GetValue("server:web:port", 8443), listenOptions =>
                             {
                                 listenOptions.UseConnectionLogging();
                                 listenOptions.UseHttps(
                                     configuration.GetValue<string>("server:web:cert"),
                                     configuration.GetValue<string>("server:web:passphrase")
                                 );
+                            });
+                        }
+                        else
+                        {
+                            serverOptions.Listen(IPAddress.Any, configuration.GetValue("server:web:port", 8080), listenOptions =>
+                            {
+                                listenOptions.UseConnectionLogging();
                             });
                         }
                     });

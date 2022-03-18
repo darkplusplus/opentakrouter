@@ -2,10 +2,11 @@
   "profiles": {
     "dpp.opentakrouter": {
         "commandName": "Project",
-        "hotReloadProfile": "aspnetcore"
+        "applicationUrl": "http://localhost:8080"
     },
     "Docker": {
-      "commandName": "Docker"
+        "commandName": "Docker",
+        "applicationUrl": "http://localhost:8080"
     }
   }
 }
