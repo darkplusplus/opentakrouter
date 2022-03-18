@@ -15,10 +15,10 @@ namespace dpp.opentakrouter.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        IClientRepository _clients;
-        IMessageRepository _messages;
-        IDataPackageRepository _datapackages;
-        IConfiguration _configuration;
+        private readonly IClientRepository _clients;
+        private readonly IMessageRepository _messages;
+        private readonly IDataPackageRepository _datapackages;
+        private readonly IConfiguration _configuration;
         
         public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages, IClientRepository clients, IMessageRepository messages, IConfiguration configuration)
         {
