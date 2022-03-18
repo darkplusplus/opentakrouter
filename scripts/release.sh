@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+if [[ -z "$CI" ]]; then
+    echo "Sorry, but this assumes running in a Github Action" 1>&2
+    exit 1
+fi
+
+VERSION=$GITHUB_REF_NAME
+HASH=$GITHUB_SHA
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DIST_DIR="$SCRIPT_DIR/../dist"
 
