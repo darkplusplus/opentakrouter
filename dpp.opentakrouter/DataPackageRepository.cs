@@ -13,7 +13,7 @@ namespace dpp.opentakrouter
     public class DataPackageRepository : IDataPackageRepository
     {
         private readonly IDatabaseContext _context;
-        private SQLiteConnection _db;
+        private readonly SQLiteConnection _db;
 
         public DataPackageRepository(IDatabaseContext context)
         {
