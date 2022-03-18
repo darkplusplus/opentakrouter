@@ -19,6 +19,8 @@ namespace dpp.opentakrouter
         private TakTcpServer _tcpServer = null;
         private TakTlsServer _tlsServer = null;
         private TakWsServer _wsServer = null;
+        private TakWssServer _wssServer = null;
+        private SslContext _sslContext = null;
         private readonly IRouter router;
         private readonly IConfiguration configuration;
         public TakService(IConfiguration configuration, IRouter router)
@@ -41,19 +43,28 @@ namespace dpp.opentakrouter
                 {
                     var cert = configuration["server:ssl:server:cert"];
                     var passphrase = configuration["server:ssl:server:passphrase"];
-                    var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(cert, passphrase));
+                    var _sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(cert, passphrase));
 
                     var port = int.Parse(configuration["server:ssl:port"]);
-                    _tlsServer = new TakTlsServer(sslContext, IPAddress.Any, port, router);
+                    _tlsServer = new TakTlsServer(_sslContext, IPAddress.Any, port, router);
                     _tlsServer.Start();
                     Log.Information("server=ssl state=started");
                 }
                 if (bool.Parse(configuration["server:ws:enabled"]))
                 {
-                    var port = int.Parse(configuration["server:ws:port"] ?? "5003");
-                    _wsServer = new TakWsServer(IPAddress.Any, port, router);
-                    _wsServer.Start();
-                    Log.Information("server=ws state=started");
+                    var port = int.Parse(configuration["server:ws:port"] ?? "5500");
+                    if (configuration.GetValue("server:web:ssl", false))
+                    {
+                        _wssServer = new TakWssServer(_sslContext, IPAddress.Any, port, router);
+                        _wssServer.Start();
+                        Log.Information("server=wss state=started");
+                    }
+                    else
+                    {
+                        _wsServer = new TakWsServer(IPAddress.Any, port, router);
+                        _wsServer.Start();
+                        Log.Information("server=ws state=started");
+                    }
                 }
             }
             catch (Exception e)
