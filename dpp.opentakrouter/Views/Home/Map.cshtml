@@ -21,7 +21,8 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var ws = new WebSocket(`ws://${window.location.hostname}:@ViewData["ws-port"]`);
+    var proto = window.location.protocol == "https" ? "wss" : "ws";
+    var ws = new WebSocket(`${proto}://${window.location.hostname}:@ViewData["ws-port"]`);
     ws.onopen = () => {
         console.log("connected!")
     }
