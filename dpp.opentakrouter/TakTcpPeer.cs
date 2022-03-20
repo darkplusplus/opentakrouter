@@ -12,7 +12,7 @@ using TcpClient = NetCoreServer.TcpClient;
 
 namespace dpp.opentakrouter
 {
-    public class TakTcpClient : TcpClient
+    public class TakTcpPeer : TcpClient
     {
         public enum Mode 
         {
@@ -29,7 +29,7 @@ namespace dpp.opentakrouter
         private bool _stop;
         private string _name;
 
-        public TakTcpClient(string name, string address, int port, IRouter router, Mode mode=Mode.Duplex, int minBackoff=3000, int maxBackoff=300000) : base(address, port)
+        public TakTcpPeer(string name, string address, int port, IRouter router, Mode mode=Mode.Duplex, int minBackoff=3000, int maxBackoff=300000) : base(address, port)
         {
             _stop = false;
             _name = name;
