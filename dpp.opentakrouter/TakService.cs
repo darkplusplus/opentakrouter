@@ -21,14 +21,14 @@ namespace dpp.opentakrouter
         private TakTlsServer _tlsServer = null;
         private TakWsServer _wsServer = null;
         private TakWssServer _wssServer = null;
-        private List<TakTcpClient> _tcpClients;
+        private List<TakTcpPeer> _tcpClients;
         private readonly IRouter router;
         private readonly IConfiguration configuration;
         public TakService(IConfiguration configuration, IRouter router)
         {
             this.configuration = configuration;
             this.router = router;
-            _tcpClients = new List<TakTcpClient>();
+            _tcpClients = new List<TakTcpPeer>();
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -102,8 +102,8 @@ namespace dpp.opentakrouter
                                     .AddressList.First(addr => addr.AddressFamily == AddressFamily.InterNetwork)
                                     .ToString();
 
-                                var mode = (TakTcpClient.Mode)Enum.Parse(typeof(TakTcpClient.Mode), peerConfig.Mode, true);
-                                var client = new TakTcpClient(
+                                var mode = (TakTcpPeer.Mode)Enum.Parse(typeof(TakTcpPeer.Mode), peerConfig.Mode, true);
+                                var client = new TakTcpPeer(
                                     peerConfig.Name,
                                     address,
                                     peerConfig.Port,
