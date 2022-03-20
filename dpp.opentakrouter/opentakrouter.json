@@ -1,34 +1,59 @@
 {
     "AllowedHosts": "*",
     "server": {
-        // set the data directory. this defaults to the executable location
-        //"data": "%appdata%/opentakrouter.db",
+        // the data directory where the database file is located.
+        // defaults to the executable location.
+        //"data": "%appdata%/opentakrouter",
+
+        // set the server name. this is used for api/federation functionality.
+        // defaults to the hostname.
+        //"name":  ""
 
         // the api interface configuration
-        "web": {
+        "api": {
             "port": 8080,
             "swagger": true,
+
+            "ssl": false,
+            "cert": "server.p12",
+            "passphrase": "atakatak"
+        },
+        "websockets": {
+            "enabled": true,
+            "port": 55000,
+
             "ssl": false,
             "cert": "server.p12",
             "passphrase": "atakatak"
         },
 
         // the tak protocol configurations
-        "tcp": {
-            "enabled": true,
-            "port": 58087
-        },
-        "ssl": {
-            "enabled": false,
-            "port": 58089,
-            "server": {
+        "tak": {
+            "tcp": {
+                "enabled": true,
+                "port": 58087
+            },
+            "tls": {
+                "enabled": false,
+                "port": 58089,
                 "cert": "server.p12",
                 "passphrase": "atakatak"
             }
-        },
-        "ws": {
-            "enabled": true,
-            "port": 55000
         }
+        /*
+        ,
+        "peers": [
+            {
+                "name": "dpp-public-tcp",
+                "mode": "duplex",
+                "address": "public.darkplusplus.com",
+                "port": 8087,
+
+                "ssl": false,
+                "cert": "server.p12",
+                "passphrase": "atakatak"
+            }
+        ]
+        */
     }
 }
