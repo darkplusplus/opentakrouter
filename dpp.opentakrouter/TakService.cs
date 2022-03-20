@@ -11,6 +11,7 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Linq;
 
 namespace dpp.opentakrouter
 {
@@ -20,42 +21,59 @@ namespace dpp.opentakrouter
         private TakTlsServer _tlsServer = null;
         private TakWsServer _wsServer = null;
         private TakWssServer _wssServer = null;
-        private SslContext _sslContext = null;
+        private List<TakTcpPeer> _tcpClients;
         private readonly IRouter router;
         private readonly IConfiguration configuration;
         public TakService(IConfiguration configuration, IRouter router)
         {
             this.configuration = configuration;
             this.router = router;
+            _tcpClients = new List<TakTcpPeer>();
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                if (bool.Parse(configuration["server:tcp:enabled"]))
+                var tcpServerConfig = configuration.GetSection("server:tak:tcp").Get<TakServerConfig>();
+                if (tcpServerConfig is not null && tcpServerConfig.Enabled)
                 {
-                    var port = int.Parse(configuration["server:tcp:port"]);
-                    _tcpServer = new TakTcpServer(IPAddress.Any, port, router);
+                    _tcpServer = new TakTcpServer(
+                        IPAddress.Any,
+                        tcpServerConfig.Port,
+                        router: router);
                     _tcpServer.Start();
                     Log.Information("server=tcp state=started");
                 }
-                if (bool.Parse(configuration["server:ssl:enabled"]))
-                {
-                    var cert = configuration["server:ssl:server:cert"];
-                    var passphrase = configuration["server:ssl:server:passphrase"];
-                    var _sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(cert, passphrase));
 
-                    var port = int.Parse(configuration["server:ssl:port"]);
-                    _tlsServer = new TakTlsServer(_sslContext, IPAddress.Any, port, router);
-                    _tlsServer.Start();
-                    Log.Information("server=ssl state=started");
-                }
-                if (bool.Parse(configuration["server:ws:enabled"]))
+                var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
+                if (tlsServerConfig is not null && tlsServerConfig.Enabled)
                 {
-                    var port = int.Parse(configuration["server:ws:port"] ?? "5500");
-                    if (configuration.GetValue("server:web:ssl", false))
+                    var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(
+                        tlsServerConfig.Cert,
+                        tlsServerConfig.Passphrase)
+                    );
+
+                    _tlsServer = new TakTlsServer(
+                        sslContext,
+                        IPAddress.Any,
+                        tlsServerConfig.Port,
+                        router: router);
+                    _tlsServer.Start();
+                    Log.Information("server=tls state=started");
+                }
+
+                var websocketConfig = configuration.GetSection("server:websockets").Get<WebConfig>();
+                if (websocketConfig is not null && websocketConfig.Enabled)
+                {
+                    var port = websocketConfig.Port ?? 5500;
+                    if (websocketConfig.Ssl)
                     {
-                        _wssServer = new TakWssServer(_sslContext, IPAddress.Any, port, router);
+                        var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(
+                            websocketConfig.Cert,
+                            websocketConfig.Passphrase)
+                        );
+
+                        _wssServer = new TakWssServer(sslContext, IPAddress.Any, port, router);
                         _wssServer.Start();
                         Log.Information("server=wss state=started");
                     }
@@ -64,6 +82,47 @@ namespace dpp.opentakrouter
                         _wsServer = new TakWsServer(IPAddress.Any, port, router);
                         _wsServer.Start();
                         Log.Information("server=ws state=started");
+                    }
+                }
+
+                var peerConfigs = configuration.GetSection("server:peers").Get<List<TakPeerConfig>>();
+                if (peerConfigs is not null)
+                {
+                    foreach (var peerConfig in peerConfigs)
+                    {
+                        if (peerConfig.Ssl)
+                        {
+                            throw new NotImplementedException("Federation of SSL peers is not implemented yet");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var address = Dns.GetHostEntry(peerConfig.Address)
+                                    .AddressList.First(addr => addr.AddressFamily == AddressFamily.InterNetwork)
+                                    .ToString();
+
+                                var mode = (TakTcpPeer.Mode)Enum.Parse(typeof(TakTcpPeer.Mode), peerConfig.Mode, true);
+                                var client = new TakTcpPeer(
+                                    peerConfig.Name,
+                                    address,
+                                    peerConfig.Port,
+                                    router: router,
+                                    mode: mode
+                                );
+                                _tcpClients.Add(client);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error($"peer={peerConfig.Name} error={e}");
+                                continue;
+                            }
+                        }
+                    }
+
+                    foreach(var client in _tcpClients)
+                    {
+                        client.Connect();
                     }
                 }
             }
