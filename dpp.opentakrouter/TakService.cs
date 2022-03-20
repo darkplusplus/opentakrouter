@@ -30,6 +30,7 @@ namespace dpp.opentakrouter
             this.router = router;
             _tcpClients = new List<TakTcpPeer>();
         }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             try
@@ -43,6 +44,10 @@ namespace dpp.opentakrouter
                         router: router);
                     _tcpServer.Start();
                     Log.Information("server=tcp state=started");
+                }
+                else
+                {
+                    Log.Information("server=tcp state=skipped");
                 }
 
                 var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
@@ -60,6 +65,10 @@ namespace dpp.opentakrouter
                         router: router);
                     _tlsServer.Start();
                     Log.Information("server=tls state=started");
+                }
+                else
+                {
+                    Log.Information("server=tls state=skipped");
                 }
 
                 var websocketConfig = configuration.GetSection("server:websockets").Get<WebConfig>();
@@ -83,6 +92,11 @@ namespace dpp.opentakrouter
                         _wsServer.Start();
                         Log.Information("server=ws state=started");
                     }
+                }
+                else
+                {
+                    Log.Information("server=ws state=skipped");
+                    Log.Information("server=wss state=skipped");
                 }
 
                 var peerConfigs = configuration.GetSection("server:peers").Get<List<TakPeerConfig>>();
@@ -137,9 +151,19 @@ namespace dpp.opentakrouter
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            Log.Information("state=shutdown");
+            Log.Information("state=stopping");
             if (_tcpServer is not null) _tcpServer.Stop();
             if (_tlsServer is not null) _tlsServer.Stop();
+            if (_wsServer is not null) _tcpServer.Stop();
+            if (_wssServer is not null) _tlsServer.Stop();
+
+            if (_tcpClients is not null)
+            {
+                foreach(var client in _tcpClients)
+                {
+                    client.DisconnectAndStop();
+                }
+            }
 
             return Task.CompletedTask;
         }
