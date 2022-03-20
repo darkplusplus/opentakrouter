@@ -25,8 +25,7 @@ namespace dpp.opentakrouter
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
-
+        { 
             services.AddControllersWithViews();
             services.AddSwaggerGen(c =>
             {
@@ -37,25 +36,24 @@ namespace dpp.opentakrouter
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
-            if (Configuration.GetValue("server:web:developer_mode", false))
+            var apiConfig = Configuration.GetSection("server:api").Get<WebConfig>();
+            if (apiConfig is not null)
             {
-                app.UseDeveloperExceptionPage();
+                if (apiConfig.Swagger)
+                {
+                    app.UseSwagger();
+                    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OpenTakRouter v1"));
+                }
+
+                if (apiConfig.Ssl)
+                {
+                    app.UseHttpsRedirection();
+                }
             }
-            if (Configuration.GetValue("server:web:swagger", false))
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OpenTakRouter v1"));
-            }
-            if (Configuration.GetValue("server:web:ssl", false))
-            {
-                app.UseHttpsRedirection();
-            }
+
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

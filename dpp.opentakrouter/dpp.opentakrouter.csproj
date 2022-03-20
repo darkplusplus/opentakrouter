@@ -8,7 +8,6 @@
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
     <PlatformTarget>x64</PlatformTarget>
-    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <AssemblyName>opentakrouter</AssemblyName>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
@@ -38,5 +37,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+  <Content Update="opentakrouter.json">
+    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+  </Content>
+</ItemGroup>
 
 </Project>
