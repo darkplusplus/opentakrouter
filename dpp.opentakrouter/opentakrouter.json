@@ -20,7 +20,7 @@
         },
         "websockets": {
             "enabled": true,
-            "port": 55000,
+            "port": 5000,
 
             "ssl": false,
             "cert": "server.p12",
@@ -39,9 +39,7 @@
                 "cert": "server.p12",
                 "passphrase": "atakatak"
             }
-        }
-        /*
-        ,
+        },
         "peers": [
             {
                 "name": "dpp-public-tcp",
@@ -54,6 +52,5 @@
                 "passphrase": "atakatak"
             }
         ]
-        */
     }
 }

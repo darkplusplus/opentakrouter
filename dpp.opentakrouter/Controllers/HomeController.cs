@@ -40,7 +40,7 @@ namespace dpp.opentakrouter.Controllers
         [HttpGet]
         public IActionResult Map()
         {
-            ViewData.Add("ws-port", _configuration["server:ws:port"] ?? "55000");
+            ViewData.Add("ws-port", _configuration["server:websockets:port"] ?? "5000");
             return View();
         }
 

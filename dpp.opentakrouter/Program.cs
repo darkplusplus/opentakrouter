@@ -32,13 +32,16 @@ namespace dpp.opentakrouter
             
 
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
-                .AddJsonFile("opentakrouter.json", true)
+                .AddJsonFile("opentakrouter.json", optional: true)
                 .Build();
 
-            var dataDir = Path.GetFullPath(configuration.GetValue("server:data", Path.GetDirectoryName(
-                Process.GetCurrentProcess().MainModule.FileName)));
+            var dataDir = Path.GetFullPath(
+                configuration.GetValue("server:data", 
+                Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName))
+                );
             
             await Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
@@ -60,23 +63,27 @@ namespace dpp.opentakrouter
                     builder.UseContentRoot(dataDir);
                     builder.ConfigureKestrel((context, serverOptions) =>
                     {
-                        if (configuration.GetValue("server:web:ssl", false))
+                        var apiConfig = configuration.GetSection("server:api").Get<WebConfig>();
+                        if (apiConfig is not null && apiConfig.Enabled)
                         {
-                            serverOptions.Listen(IPAddress.Any, configuration.GetValue("server:web:port", 8443), listenOptions =>
+                            if (apiConfig.Ssl)
                             {
-                                listenOptions.UseConnectionLogging();
-                                listenOptions.UseHttps(
-                                    configuration.GetValue<string>("server:web:cert"),
-                                    configuration.GetValue<string>("server:web:passphrase")
-                                );
-                            });
-                        }
-                        else
-                        {
-                            serverOptions.Listen(IPAddress.Any, configuration.GetValue("server:web:port", 8080), listenOptions =>
+                                serverOptions.Listen(IPAddress.Any, apiConfig.Port ?? 8443, listenOptions =>
+                                {
+                                    listenOptions.UseConnectionLogging();
+                                    listenOptions.UseHttps(
+                                        apiConfig.Cert,
+                                        apiConfig.Passphrase
+                                    );
+                                });
+                            }
+                            else
                             {
-                                listenOptions.UseConnectionLogging();
-                            });
+                                serverOptions.Listen(IPAddress.Any, apiConfig.Port ?? 8080, listenOptions =>
+                                {
+                                    listenOptions.UseConnectionLogging();
+                                });
+                            }
                         }
                     });
                     builder.UseStartup<WebService>();
