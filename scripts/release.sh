@@ -29,8 +29,8 @@ pushd ./dpp.opentakrouter/bin/Release/net5.0/$ARCH/publish/
 tar -czvf $DIST_DIR/opentakrouter-$VERSION-$ARCH.tar.gz .
 popd
 
-# linux-armx64
-ARCH=linux-armx64
+# linux-arm64
+ARCH=linux-arm64
 dotnet publish dpp.opentakrouter -c Release -r $ARCH --self-contained=true -p:PublishSingleFile=true
 pushd ./dpp.opentakrouter/bin/Release/net5.0/$ARCH/publish/
 tar -czvf $DIST_DIR/opentakrouter-$VERSION-$ARCH.tar.gz .
