@@ -46,8 +46,7 @@ namespace dpp.opentakrouter
         {
             if (_clientMode == Mode.Transmit || _clientMode == Mode.Duplex)
             {
-                var msg = new cot.Message() { Event = e.Event };
-                _ = Send(msg.ToXmlString());
+                _ = Send(e.Data);
             }
         }
 
@@ -91,13 +90,12 @@ namespace dpp.opentakrouter
             {
                 try
                 {
-                    var msgstr = Encoding.UTF8.GetString(buffer);
                     var msg = Message.Parse(buffer, (int)offset, (int)size);
                     if (msg.Event.IsA(CotPredicates.t_ping))
                         return;
 
                     Log.Information($"peer={_name} event=cot type={msg.Event.Type}");
-                    _router.Send(msg.Event);
+                    _router.Send(msg.Event, buffer);
                 }
                 catch (Exception e)
                 {

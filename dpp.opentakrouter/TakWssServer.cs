@@ -28,8 +28,8 @@ namespace dpp.opentakrouter
 
         protected void OnRoutedEvent(object sender, RoutedEventArgs e)
         {
-            var msg = new cot.Message() { Event = e.Event };
-            _ = this.MulticastText(msg.ToXmlString());
+            var xml = Encoding.UTF8.GetString(e.Data);
+            _ = this.MulticastText(xml);
         }
 
         protected override void OnError(SocketError error)

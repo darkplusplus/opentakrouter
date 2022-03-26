@@ -32,6 +32,7 @@ namespace dpp.opentakrouter
         {
             try
             {
+                var msgstr = Encoding.UTF8.GetString(buffer);
                 var msg = Message.Parse(buffer, (int)offset, (int)size);
                 if (msg.Event.IsA(CotPredicates.t_ping))
                 {
@@ -39,7 +40,7 @@ namespace dpp.opentakrouter
                     SendAsync(Event.Pong(msg.Event).ToXmlString());
                 }
 
-                _router.Send(msg.Event);
+                _router.Send(msg.Event, buffer);
             }
             catch (Exception e)
             {

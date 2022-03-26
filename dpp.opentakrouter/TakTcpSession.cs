@@ -32,7 +32,6 @@ namespace dpp.opentakrouter
         {
             try
             {
-                var msgstr = Encoding.UTF8.GetString(buffer);
                 var msg = Message.Parse(buffer, (int)offset, (int)size);
                 if (msg.Event.IsA(CotPredicates.t_ping))
                 {
@@ -41,7 +40,7 @@ namespace dpp.opentakrouter
                 }
 
                 Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot type={msg.Event.Type}");
-                _router.Send(msg.Event);
+                _router.Send(msg.Event, buffer);
             }
             catch (Exception e)
             {

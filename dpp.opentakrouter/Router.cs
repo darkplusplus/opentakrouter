@@ -22,8 +22,10 @@ namespace dpp.opentakrouter
 
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
 
-        public void Send(Event e)                     
+        public void Send(Event e, byte[]? data)
         {
+            data = data ?? (new Message() { Event = e }).ToXmlBytes();
+
             if (e.IsA(CotPredicates.t_ping))
             {
                 _clients.Upsert(new Client()
@@ -46,7 +48,7 @@ namespace dpp.opentakrouter
                 Expiration = e.Stale
             });
             
-            OnRaiseRoutedEvent(new RoutedEventArgs(e));
+            OnRaiseRoutedEvent(new RoutedEventArgs(e, data));
         }
 
         protected virtual void OnRaiseRoutedEvent(RoutedEventArgs e)
@@ -58,9 +60,11 @@ namespace dpp.opentakrouter
     public class RoutedEventArgs : EventArgs
     {
         public Event Event { get; set; }
-        public RoutedEventArgs(Event e)
+        public byte[]? Data { get; set; }
+        public RoutedEventArgs(Event e, byte[]? data)
         {
-            this.Event = e;
+            Event = e;
+            Data = data ?? (new Message() { Event = e }).ToXmlBytes();
         }
     }
 }
