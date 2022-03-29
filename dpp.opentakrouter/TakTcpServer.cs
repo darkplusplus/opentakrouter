@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using NetCoreServer;
+using Serilog;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-
-using NetCoreServer;
-using Serilog;
 
 namespace dpp.opentakrouter
 {

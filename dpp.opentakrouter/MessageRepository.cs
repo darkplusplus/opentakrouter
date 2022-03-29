@@ -1,16 +1,13 @@
 ﻿using dpp.opentakrouter.Models;
 using SQLite;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace dpp.opentakrouter
 {
     public class MessageRepository : IMessageRepository
     {
         private readonly IDatabaseContext _context;
-        private SQLiteConnection _db;
+        private readonly SQLiteConnection _db;
 
         public MessageRepository(IDatabaseContext context)
         {

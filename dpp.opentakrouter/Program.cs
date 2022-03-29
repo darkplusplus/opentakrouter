@@ -1,20 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Serilog;
 using Serilog.Events;
-using Microsoft.Extensions.Configuration;
-using System.Net;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 
 namespace dpp.opentakrouter
 {
@@ -22,14 +16,14 @@ namespace dpp.opentakrouter
     {
         static async System.Threading.Tasks.Task Main(string[] args)
         {
-            
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateBootstrapLogger();
-            
+
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
@@ -39,10 +33,10 @@ namespace dpp.opentakrouter
                 .Build();
 
             var dataDir = Path.GetFullPath(
-                configuration.GetValue("server:data", 
+                configuration.GetValue("server:data",
                 Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName))
                 );
-            
+
             await Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {

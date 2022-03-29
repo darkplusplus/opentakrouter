@@ -1,9 +1,6 @@
 ﻿using dpp.opentakrouter.Models;
 using SQLite;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace dpp.opentakrouter
 {
@@ -35,7 +32,7 @@ namespace dpp.opentakrouter
             return _db.Table<Client>().Where(c => c.Callsign == callsign).FirstOrDefault();
         }
 
-        public IEnumerable<Client> Search(string query="")
+        public IEnumerable<Client> Search(string query = "")
         {
             // TODO: clean up how client data is enumerated
             return _db.Table<Client>().Where(c => c.Callsign == c.Callsign);
@@ -50,7 +47,9 @@ namespace dpp.opentakrouter
         {
             var e = Get(c.Callsign);
             if (e is null)
+            {
                 return Add(c);
+            }
 
             return Update(e);
         }

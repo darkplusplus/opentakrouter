@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using dpp.opentakrouter.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using dpp.opentakrouter.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Linq;
 
 namespace dpp.opentakrouter.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi=true)]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -20,7 +16,7 @@ namespace dpp.opentakrouter.Controllers
         private readonly IMessageRepository _messages;
         private readonly IDataPackageRepository _datapackages;
         private readonly IConfiguration _configuration;
-        
+
         public HomeController(ILogger<HomeController> logger, IDataPackageRepository datapackages, IClientRepository clients, IMessageRepository messages, IConfiguration configuration)
         {
             _logger = logger;

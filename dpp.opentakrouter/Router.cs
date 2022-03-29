@@ -1,11 +1,6 @@
 ﻿using dpp.cot;
 using dpp.opentakrouter.Models;
-using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dpp.opentakrouter
 {
@@ -22,9 +17,9 @@ namespace dpp.opentakrouter
 
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
 
-        public void Send(Event e, byte[]? data)
+        public void Send(Event e, byte[] data)
         {
-            data = data ?? (new Message() { Event = e }).ToXmlBytes();
+            data ??= (new Message() { Event = e }).ToXmlBytes();
 
             if (e.IsA(CotPredicates.t_ping))
             {
@@ -47,7 +42,7 @@ namespace dpp.opentakrouter
                 Timestamp = e.Time,
                 Expiration = e.Stale
             });
-            
+
             OnRaiseRoutedEvent(new RoutedEventArgs(e, data));
         }
 
@@ -60,8 +55,8 @@ namespace dpp.opentakrouter
     public class RoutedEventArgs : EventArgs
     {
         public Event Event { get; set; }
-        public byte[]? Data { get; set; }
-        public RoutedEventArgs(Event e, byte[]? data)
+        public byte[] Data { get; set; }
+        public RoutedEventArgs(Event e, byte[] data)
         {
             Event = e;
             Data = data ?? (new Message() { Event = e }).ToXmlBytes();
