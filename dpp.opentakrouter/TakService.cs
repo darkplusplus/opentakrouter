@@ -1,17 +1,16 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using NetCoreServer;
+using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Serilog;
-using NetCoreServer;
+using System.Linq;
 using System.Net;
-using Microsoft.Extensions.Configuration;
+using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace dpp.opentakrouter
 {
@@ -21,7 +20,7 @@ namespace dpp.opentakrouter
         private TakTlsServer _tlsServer = null;
         private TakWsServer _wsServer = null;
         private TakWssServer _wssServer = null;
-        private List<TakTcpPeer> _tcpClients;
+        private readonly List<TakTcpPeer> _tcpClients;
         private readonly IRouter router;
         private readonly IConfiguration configuration;
         public TakService(IConfiguration configuration, IRouter router)
@@ -134,7 +133,7 @@ namespace dpp.opentakrouter
                         }
                     }
 
-                    foreach(var client in _tcpClients)
+                    foreach (var client in _tcpClients)
                     {
                         client.Connect();
                     }
@@ -145,21 +144,36 @@ namespace dpp.opentakrouter
                 Log.Error(e, "state=error");
                 System.Environment.Exit(2);
             }
-            
+
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             Log.Information("state=stopping");
-            if (_tcpServer is not null) _tcpServer.Stop();
-            if (_tlsServer is not null) _tlsServer.Stop();
-            if (_wsServer is not null) _tcpServer.Stop();
-            if (_wssServer is not null) _tlsServer.Stop();
+            if (_tcpServer is not null)
+            {
+                _tcpServer.Stop();
+            }
+
+            if (_tlsServer is not null)
+            {
+                _tlsServer.Stop();
+            }
+
+            if (_wsServer is not null)
+            {
+                _tcpServer.Stop();
+            }
+
+            if (_wssServer is not null)
+            {
+                _tlsServer.Stop();
+            }
 
             if (_tcpClients is not null)
             {
-                foreach(var client in _tcpClients)
+                foreach (var client in _tcpClients)
                 {
                     client.DisconnectAndStop();
                 }

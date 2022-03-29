@@ -1,12 +1,9 @@
 ﻿using dpp.opentakrouter.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using SQLite;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace dpp.opentakrouter
 {
@@ -27,7 +24,7 @@ namespace dpp.opentakrouter
             return _db.Insert(datapackage);
         }
 
-        public int Add(IFormFile file, string hash, string filename, string? submissionUser="Anonymous", string? creatorUid="Anonymous", string? keywords="missionpackage", string? visibility="private")
+        public int Add(IFormFile file, string hash, string filename, string submissionUser = "Anonymous", string creatorUid = "Anonymous", string keywords = "missionpackage", string visibility = "private")
         {
             // TODO: compute the SHA256 hash if it's null
 

@@ -1,20 +1,15 @@
 ﻿using dpp.cot;
-using NetCoreServer;
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using TcpClient = NetCoreServer.TcpClient;
 
 namespace dpp.opentakrouter
 {
     public class TakTcpPeer : TcpClient
     {
-        public enum Mode 
+        public enum Mode
         {
             Receive,
             Transmit,
@@ -22,14 +17,14 @@ namespace dpp.opentakrouter
         }
 
         private readonly IRouter _router;
-        private readonly Mode _clientMode; 
+        private readonly Mode _clientMode;
         private readonly int _initialBackoff = 3000;
         private readonly int _maxBackoff = 300000;
         private int _backoff;
         private bool _stop;
-        private string _name;
+        private readonly string _name;
 
-        public TakTcpPeer(string name, string address, int port, IRouter router, Mode mode=Mode.Duplex, int minBackoff=3000, int maxBackoff=300000) : base(address, port)
+        public TakTcpPeer(string name, string address, int port, IRouter router, Mode mode = Mode.Duplex, int minBackoff = 3000, int maxBackoff = 300000) : base(address, port)
         {
             _stop = false;
             _name = name;
@@ -68,7 +63,9 @@ namespace dpp.opentakrouter
             _backoff = Math.Clamp((int)Math.Round(_backoff * Math.E), _initialBackoff, _maxBackoff);
 
             if (!_stop)
+            {
                 ConnectAsync();
+            }
         }
 
         public void DisconnectAndStop()
@@ -76,7 +73,9 @@ namespace dpp.opentakrouter
             _stop = true;
             DisconnectAsync();
             while (IsConnected)
+            {
                 Thread.Yield();
+            }
         }
 
         protected override void OnError(SocketError error)
@@ -92,7 +91,9 @@ namespace dpp.opentakrouter
                 {
                     var msg = Message.Parse(buffer, (int)offset, (int)size);
                     if (msg.Event.IsA(CotPredicates.t_ping))
+                    {
                         return;
+                    }
 
                     Log.Information($"peer={_name} event=cot type={msg.Event.Type}");
                     _router.Send(msg.Event, buffer);

@@ -1,18 +1,10 @@
-﻿using dpp.opentakrouter.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SQLite;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dpp.opentakrouter.Controllers
 {
@@ -94,9 +86,12 @@ namespace dpp.opentakrouter.Controllers
 
         [Route("/Marti/sync/search")]
         [HttpGet]
-        public object SearchDatapackages(string? keywords="", string? tool="")
+        public object SearchDatapackages(string keywords = "", string tool = "")
         {
-            // TODO: add logic for `tool` param to control package privacy
+            if (string.IsNullOrEmpty(tool))
+            {
+                // TODO: add logic for `tool` param to control package privacy
+            }
 
             List<Dictionary<string, object>> packages = new();
             foreach (var dp in _datapackages.Search(keywords))
@@ -116,7 +111,7 @@ namespace dpp.opentakrouter.Controllers
                     { "Visibility", dp.IsPrivate ? "private" : "public" }
                 });
             }
-            
+
             return new Dictionary<string, object>()
             {
                 { "resultCount", packages.Count },
@@ -137,7 +132,7 @@ namespace dpp.opentakrouter.Controllers
                     FileDownloadName = dp.UID
                 };
             }
-            catch(Exception e)
+            catch
             {
                 return NotFound();
             }
@@ -145,19 +140,19 @@ namespace dpp.opentakrouter.Controllers
 
         [Route("/Marti/sync/missionupload")]
         [HttpPost, DisableRequestSizeLimit]
-        public IActionResult UploadDatapackage(string hash, string filename, string creatorUid, string? keywords="missionpackage", string? visibility="private")
+        public IActionResult UploadDatapackage(string hash, string filename, string creatorUid, string keywords = "missionpackage", string visibility = "private")
         {
             try
             {
-                var user = Request.Headers.ContainsKey("X-USER") 
-                    ? Request.Headers["X-USER"].ToString() 
+                var user = Request.Headers.ContainsKey("X-USER")
+                    ? Request.Headers["X-USER"].ToString()
                     : "Anonymous";
 
                 var file = Request.Form.Files[0];
 
                 _datapackages.Add(file, hash, filename, user, creatorUid, keywords, visibility);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return StatusCode(500, $"{e.Message}");
             }
@@ -195,15 +190,15 @@ namespace dpp.opentakrouter.Controllers
                     return NotFound();
                 }
 
-                
+
 
                 return Ok($"https://{_endpoint}:{_port}/Marti/sync/content?hash={hash}");
             }
-            catch(Exception e)
+            catch
             {
                 return NotFound();
             }
-            
+
         }
 
         [Route("/Marti/TracksKML")]

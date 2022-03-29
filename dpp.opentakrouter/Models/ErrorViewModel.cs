@@ -1,5 +1,3 @@
-using System;
-
 namespace dpp.opentakrouter.Models
 {
     public class ErrorViewModel
