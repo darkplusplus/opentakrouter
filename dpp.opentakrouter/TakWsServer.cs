@@ -23,7 +23,8 @@ namespace dpp.opentakrouter
 
         protected void OnRoutedEvent(object sender, RoutedEventArgs e)
         {
-            var xml = Encoding.UTF8.GetString(e.Data);
+            // TODO: can websockets be raw data (i.e. protobuf), or should they just be the xml event?
+            var xml = e.Event.ToXmlString();
             _ = this.MulticastText(xml);
         }
 
