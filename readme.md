@@ -1,4 +1,4 @@
-# OpenTakRouter
+# OpenTakRouter [![ci](https://github.com/darkplusplus/opentakrouter/actions/workflows/ci.yml/badge.svg)](https://github.com/darkplusplus/opentakrouter/actions/workflows/ci.yml)
 
 An opensource router of cursor-on-target messages with support for [ATAK](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV).
 
