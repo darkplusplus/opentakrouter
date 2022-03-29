@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace dpp.opentakrouter.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi=true)]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
