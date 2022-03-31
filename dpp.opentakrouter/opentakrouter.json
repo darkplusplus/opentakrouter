@@ -41,16 +41,6 @@
             }
         },
         "peers": [
-            {
-                "name": "dpp-public-tcp",
-                "mode": "duplex",
-                "address": "public.darkplusplus.com",
-                "port": 8087,
-
-                "ssl": false,
-                "cert": "server.p12",
-                "passphrase": "atakatak"
-            }
         ]
     }
 }
