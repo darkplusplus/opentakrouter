@@ -14,6 +14,7 @@
 
 @section Scripts {
 <script src="lib/leaflet/leaflet.min.js"></script>
+<script src="lib/milsymbol/dist/milsymbol.min.js"></script>
 <script>
     var markers = {}
     var map = L.map('map').setView([30, -30], 3);
@@ -50,8 +51,24 @@
             "popup": popup
         });
 
+        var sidc = function (t) {
+            var parts = t.toUpperCase().split('-');
+            parts[0] = 'S';
+            parts.splice(3, 0, "P")
+            return parts.join("").padEnd(12, "-");
+        }(type)
+
+        var symbol = new ms.Symbol(sidc, {
+        })
+        symbol = symbol.setOptions({ size: 20 });
+
+        var icon = L.icon({
+            iconUrl: symbol.toDataURL(),
+            iconAnchor: [symbol.getAnchor().x, symbol.getAnchor().y],
+        });
+
         if (!markers[uid]) {
-            markers[uid] = L.marker(coord).addTo(map).bindPopup(popup);
+            markers[uid] = L.marker(coord, { icon: icon }).addTo(map).bindPopup(popup);
         } else {
             markers[uid].setLatLng(coord).setPopupContent(popup);
         }
