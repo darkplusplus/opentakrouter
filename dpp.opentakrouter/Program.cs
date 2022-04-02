@@ -14,17 +14,8 @@ namespace dpp.opentakrouter
 {
     class Program
     {
-        static async System.Threading.Tasks.Task Main(string[] args)
+        static IHostBuilder Initialize(string[] args)
         {
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateBootstrapLogger();
-
-
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddEnvironmentVariables()
@@ -37,7 +28,17 @@ namespace dpp.opentakrouter
                 Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName))
                 );
 
-            await Host.CreateDefaultBuilder(args)
+            var logFile = Path.Combine(dataDir, "opentakrouter.log");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1))
+                .CreateBootstrapLogger();
+
+            return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     builder.Sources.Clear();
@@ -86,7 +87,18 @@ namespace dpp.opentakrouter
                     .ReadFrom.Configuration(context.Configuration)
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
-                    .WriteTo.Console())
+                    .WriteTo.Console()
+                    .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1)))
+                .UseWindowsService()
+                .UseSystemd();
+
+        }
+        static async System.Threading.Tasks.Task Main(string[] args)
+        {
+
+            var hostBuilder = Initialize(args);
+
+            await hostBuilder
                 .Build()
                 .RunAsync();
         }
