@@ -18,6 +18,11 @@
     {
       "library": "leaflet@1.7.1",
       "destination": "wwwroot/lib/leaflet/"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "milsymbol@2.0.0",
+      "destination": "wwwroot/lib/milsymbol/"
     }
   ]
 }
