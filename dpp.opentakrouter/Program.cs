@@ -29,6 +29,7 @@ namespace dpp.opentakrouter
                 );
 
             var logFile = Path.Combine(dataDir, "opentakrouter.log");
+            var flushInterval = new TimeSpan(0, 0, 1);
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -36,7 +37,10 @@ namespace dpp.opentakrouter
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1))
+                .WriteTo.File(
+                    logFile, 
+                    flushToDiskInterval: flushInterval,
+                    rollingInterval: RollingInterval.Day)
                 .CreateBootstrapLogger();
 
             return Host.CreateDefaultBuilder(args)
@@ -53,7 +57,10 @@ namespace dpp.opentakrouter
                     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
-                    .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1)))
+                    .WriteTo.File(
+                        logFile,
+                        flushToDiskInterval: flushInterval,
+                        rollingInterval: RollingInterval.Day))
                 .ConfigureServices((context, services) =>
                 {
                     services.AddScoped<IDatabaseContext, DatabaseContext>();
