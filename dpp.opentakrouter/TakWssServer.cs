@@ -30,7 +30,7 @@ namespace dpp.opentakrouter
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"id=server error={error}");
+            Log.Error($"server=wss id=server error={error}");
         }
     }
 }

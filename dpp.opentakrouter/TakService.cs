@@ -42,11 +42,11 @@ namespace dpp.opentakrouter
                         tcpServerConfig.Port,
                         router: router);
                     _tcpServer.Start();
-                    Log.Information("server=tcp state=started");
+                    Log.Information("server=tak-tcp state=started");
                 }
                 else
                 {
-                    Log.Information("server=tcp state=skipped");
+                    Log.Information("server=tak-tcp state=skipped");
                 }
 
                 var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
@@ -63,11 +63,11 @@ namespace dpp.opentakrouter
                         tlsServerConfig.Port,
                         router: router);
                     _tlsServer.Start();
-                    Log.Information("server=tls state=started");
+                    Log.Information("server=tak-ssl state=started");
                 }
                 else
                 {
-                    Log.Information("server=tls state=skipped");
+                    Log.Information("server=tak-ssl state=skipped");
                 }
 
                 var websocketConfig = configuration.GetSection("server:websockets").Get<WebConfig>();

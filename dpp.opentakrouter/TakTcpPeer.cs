@@ -95,7 +95,7 @@ namespace dpp.opentakrouter
                         return;
                     }
 
-                    Log.Information($"peer={_name} event=cot type={msg.Event.Type}");
+                    Log.Information($"peer={_name} event=cot uid={msg.Event.Uid} type={msg.Event.Type}");
                     _router.Send(msg.Event, buffer);
                 }
                 catch (Exception e)
