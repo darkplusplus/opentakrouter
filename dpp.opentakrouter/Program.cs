@@ -67,7 +67,7 @@ namespace dpp.opentakrouter
                     services.AddScoped<IClientRepository, ClientRepository>();
                     services.AddScoped<IMessageRepository, MessageRepository>();
                     services.AddScoped<IDataPackageRepository, DataPackageRepository>();
-                    services.AddScoped<IRouter, Router>();
+                    services.AddSingleton<IRouter, Router>();
                     services.AddHostedService<TakService>();
                 })
                 .ConfigureWebHostDefaults(builder =>
