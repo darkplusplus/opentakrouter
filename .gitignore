@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # dist
 dist/
+
+# client libraries
+dpp.opentakrouter/wwwroot/lib/
