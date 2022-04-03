@@ -29,13 +29,18 @@ namespace dpp.opentakrouter
                 );
 
             var logFile = Path.Combine(dataDir, "opentakrouter.log");
+            var flushInterval = new TimeSpan(0, 0, 1);
 
             Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1))
+                .WriteTo.File(
+                    logFile, 
+                    flushToDiskInterval: flushInterval,
+                    rollingInterval: RollingInterval.Day)
                 .CreateBootstrapLogger();
 
             return Host.CreateDefaultBuilder(args)
@@ -44,6 +49,18 @@ namespace dpp.opentakrouter
                     builder.Sources.Clear();
                     builder.AddConfiguration(configuration);
                 })
+                .UseSerilog((context, services, configuration) => configuration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services)
+                    .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console()
+                    .WriteTo.File(
+                        logFile,
+                        flushToDiskInterval: flushInterval,
+                        rollingInterval: RollingInterval.Day))
                 .ConfigureServices((context, services) =>
                 {
                     services.AddScoped<IDatabaseContext, DatabaseContext>();
@@ -83,12 +100,6 @@ namespace dpp.opentakrouter
                     });
                     builder.UseStartup<WebService>();
                 })
-                .UseSerilog((context, services, configuration) => configuration
-                    .ReadFrom.Configuration(context.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .WriteTo.File(logFile, flushToDiskInterval: new TimeSpan(0, 0, 1)))
                 .UseWindowsService()
                 .UseSystemd();
 

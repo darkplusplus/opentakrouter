@@ -16,37 +16,37 @@ namespace dpp.opentakrouter
         }
         protected override void OnConnected()
         {
-            Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} state=connected");
+            Log.Information($"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} state=connected");
         }
 
         protected override void OnDisconnected()
         {
-            Log.Information($"id={Id} state=disconnected");
+            Log.Information($"server=tak-ssl session={Id} state=disconnected");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             try
             {
-                var msgstr = Encoding.UTF8.GetString(buffer);
                 var msg = Message.Parse(buffer, (int)offset, (int)size);
+                Log.Information($"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={msg.Event.Uid} type={msg.Event.Type}");
                 if (msg.Event.IsA(CotPredicates.t_ping))
                 {
-                    Log.Information($"id={Id} endpoint={Socket.RemoteEndPoint} event=cot-ping");
                     SendAsync(Event.Pong(msg.Event).ToXmlString());
+                    return;
                 }
 
                 _router.Send(msg.Event, buffer);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"id={Id} endpoint={Socket.RemoteEndPoint} type=unknown error=true forwarded=false");
+                Log.Error(e, $"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
             }
         }
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"id={Id} error={error}");
+            Log.Error($"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} error={error}");
         }
     }
 }

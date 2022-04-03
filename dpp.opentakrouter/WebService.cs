@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 namespace dpp.opentakrouter
 {
@@ -42,6 +43,14 @@ namespace dpp.opentakrouter
             }
 
             app.UseStaticFiles();
+            app.UseSerilogRequestLogging(options =>
+            {
+                options.MessageTemplate = "server=web endpoint={RemoteIpAddress} method={RequestMethod} req={RequestPath} status={StatusCode} ms={Elapsed}";
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+                };
+            });
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
