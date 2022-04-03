@@ -22,13 +22,11 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var proto = window.location.protocol == "https" ? "wss" : "ws";
-    var ws = new WebSocket(`${proto}://${window.location.hostname}:@ViewData["ws-port"]`);
-    ws.onopen = () => {
+    function OnOpen () {
         console.log("connected!")
     }
 
-    ws.onmessage = (msg) => {
+    function OnMessage (msg) {
         var cot = $.parseXML(msg.data);
 
         var uid = $(cot).find("event").attr("uid");
@@ -73,5 +71,20 @@
             markers[uid].setLatLng(coord).setPopupContent(popup);
         }
     }
+
+    function Connect() {
+        var proto = window.location.protocol == "https" ? "wss" : "ws";
+        var wsEndpoint = `${proto}://${window.location.hostname}:@ViewData["ws-port"]`;
+        var ws = new WebSocket(wsEndpoint);
+
+        ws.onopen = OnOpen;
+        ws.onmessage = OnMessage;
+        ws.onclose = () => {
+            ws = null;
+            setTimeout(Connect, 3000);
+        }
+    }
+
+    Connect();
 </script>
 }
