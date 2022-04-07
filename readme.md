@@ -20,7 +20,7 @@ You can track our current roadmap here: https://github.com/darkplusplus/opentakr
 3. Review `opentakrouter.json` to see the default configuration. 
 4. Run `opentakrouter`.
 5. Browse to http://localhost:8080 to see the admin pages.
-6. Connect your EUD to your host on port `8087`.
+6. Connect your EUD to your host on port `58087`.
 
 
 ## Want to run this on AWS?
