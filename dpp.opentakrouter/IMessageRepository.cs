@@ -8,7 +8,11 @@ namespace dpp.opentakrouter
         public IEnumerable<StoredMessage> Search(string keywords = "");
         public StoredMessage Get(string UID);
         public int Add(StoredMessage msg);
+
+        public int Upsert(StoredMessage msg);
         public int Update(StoredMessage msg);
         public int Delete(string UID);
+        public int EvictExpired();
+        IEnumerable<StoredMessage> GetActive();
     }
 }

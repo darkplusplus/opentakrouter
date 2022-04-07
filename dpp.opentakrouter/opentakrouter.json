@@ -5,6 +5,8 @@
         // defaults to the executable location.
         //"data": "%appdata%/opentakrouter",
 
+        "persist_messages":  false,
+
         // set the server name. this is used for api/federation functionality.
         // defaults to the hostname.
         //"name":  ""

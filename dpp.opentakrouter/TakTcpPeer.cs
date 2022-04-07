@@ -2,6 +2,8 @@
 using Serilog;
 using System;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using TcpClient = NetCoreServer.TcpClient;
 
@@ -54,6 +56,11 @@ namespace dpp.opentakrouter
         {
             Log.Information($"peer={_name} state=connected");
             _backoff = _initialBackoff;
+
+            foreach (var evt in _router.GetActiveEvents())
+            {
+                SendAsync(evt.ToXmlString());
+            }
         }
 
         protected override void OnDisconnected()
@@ -89,18 +96,35 @@ namespace dpp.opentakrouter
             {
                 try
                 {
-                    var msg = Message.Parse(buffer, (int)offset, (int)size);
-                    if (msg.Event.IsA(CotPredicates.t_ping))
-                    {
-                        return;
-                    }
+                    var data = Encoding.UTF8.GetString(buffer);
 
-                    Log.Information($"peer={_name} event=cot uid={msg.Event.Uid} type={msg.Event.Type}");
-                    _router.Send(msg.Event, buffer);
+                    foreach (Match match in Regex.Matches(data, @"<event.+\/event>"))
+                    {
+                        try
+                        {
+                            var evt = Event.Parse(match.Value);
+                            Log.Information($"peer={_name} event=cot uid={evt.Uid} type={evt.Type}");
+                            if (evt.IsA(CotPredicates.t_ping))
+                            {
+                                SendAsync(Event.Pong(evt).ToXmlString());
+                                return;
+                            }
+
+                            _router.Send(evt, buffer);
+                        }
+                        catch (OverflowException)
+                        {
+                            Log.Error($"peer={_name} type=unknown error=true forwarded=false message=\"Overflow error. Receiving too much data.\"");
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error($"peer={_name} type=unknown error=true forwarded=false message=\"{e.Message}\"");
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, $"peer={_name} type=unknown error=true forwarded=false");
+                    Log.Error($"peer={_name} type=unknown error=true forwarded=false message=\"{e.Message}\"");
                 }
             }
         }
