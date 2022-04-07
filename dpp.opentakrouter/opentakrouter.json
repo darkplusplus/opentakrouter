@@ -5,6 +5,10 @@
         // defaults to the executable location.
         //"data": "%appdata%/opentakrouter",
 
+        // persist messages to the local database. on by default.
+        // in extreme cases this may increase throughput slightly.
+        "persist_messages": true,
+
         // set the server name. this is used for api/federation functionality.
         // defaults to the hostname.
         //"name":  ""

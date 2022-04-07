@@ -25,6 +25,7 @@ namespace dpp.opentakrouter
                 null, null, null, null);
 
             Database = new SQLiteConnection(options);
+
         }
     }
 }

@@ -3,6 +3,8 @@ using NetCoreServer;
 using Serilog;
 using System;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace dpp.opentakrouter
 {
@@ -16,6 +18,10 @@ namespace dpp.opentakrouter
         public override void OnWsConnected(HttpRequest request)
         {
             Log.Information($"server=wss endpoint={Socket.RemoteEndPoint} session={Id} state=connected");
+            foreach (var evt in _router.GetActiveEvents())
+            {
+                SendTextAsync(evt.ToXmlString());
+            }
         }
 
         public override void OnWsDisconnected()
@@ -27,10 +33,21 @@ namespace dpp.opentakrouter
         {
             try
             {
-                var msg = Message.Parse(buffer, (int)offset, (int)size);
+                var data = Encoding.UTF8.GetString(buffer);
 
-                Log.Information($"server=wss endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={msg.Event.Uid} type={msg.Event.Type}");
-                _router.Send(msg.Event, buffer);
+                foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
+                {
+                    try
+                    {
+                        var evt = Event.Parse(match.Value);
+                        Log.Information($"server=wss endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={evt.Uid} type={evt.Type}");
+                        _router.Send(evt, null);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, $"server=wss endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
+                    }
+                }
             }
             catch (Exception e)
             {

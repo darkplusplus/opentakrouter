@@ -1,21 +1,41 @@
 ﻿using dpp.cot;
 using dpp.opentakrouter.Models;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 
 namespace dpp.opentakrouter
 {
     public class Router : IRouter
     {
+        private readonly IConfiguration _configuration;
         private readonly IClientRepository _clients;
         private readonly IMessageRepository _messages;
 
-        public Router(IClientRepository clients, IMessageRepository messages)
+        private readonly bool _persistMessages;
+
+        public Router(IConfiguration configuration, IClientRepository clients, IMessageRepository messages)
         {
+            _configuration = configuration;
             _clients = clients;
             _messages = messages;
+
+            _persistMessages = _configuration.GetValue("server:persist_messages", true);
         }
 
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
+
+        public IEnumerable<Event> GetActiveEvents()
+        {
+            List<Event> results = new();
+
+            foreach (var evt in _messages.GetActive())
+            {
+                results.Add(Event.Parse(evt.Data));
+            }
+
+            return results;
+        }
 
         public void Send(Event e, byte[] data)
         {
@@ -35,13 +55,16 @@ namespace dpp.opentakrouter
                 return;
             }
 
-            _messages.Add(new Models.StoredMessage()
+            if (_persistMessages)
             {
-                Uid = e.Uid,
-                Data = e.ToXmlString(),
-                Timestamp = e.Time,
-                Expiration = e.Stale
-            });
+                _messages.Upsert(new Models.StoredMessage()
+                {
+                    Uid = e.Uid,
+                    Data = e.ToXmlString(),
+                    Timestamp = e.Time,
+                    Expiration = e.Stale
+                });
+            }
 
             OnRaiseRoutedEvent(new RoutedEventArgs(e, data));
         }

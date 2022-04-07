@@ -38,7 +38,7 @@ namespace dpp.opentakrouter
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.File(
-                    logFile, 
+                    logFile,
                     flushToDiskInterval: flushInterval,
                     rollingInterval: RollingInterval.Day)
                 .CreateBootstrapLogger();
@@ -106,6 +106,14 @@ namespace dpp.opentakrouter
         }
         static async System.Threading.Tasks.Task Main(string[] args)
         {
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                if (Console.LargestWindowWidth != 0)
+                {
+
+                }
+            }
+
 
             var hostBuilder = Initialize(args);
 

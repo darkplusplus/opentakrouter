@@ -1,5 +1,6 @@
 ﻿using dpp.opentakrouter.Models;
 using SQLite;
+using System;
 using System.Collections.Generic;
 
 namespace dpp.opentakrouter
@@ -14,11 +15,17 @@ namespace dpp.opentakrouter
             _context = context;
             _db = _context.Database;
             _db.CreateTable<StoredMessage>();
+
+            EvictExpired();
         }
 
         public int Add(StoredMessage msg)
         {
-            return _db.Insert(msg);
+            _db.BeginTransaction();
+            var r = _db.Insert(msg);
+            _db.Commit();
+
+            return r;
         }
 
         public int Delete(string q)
@@ -39,7 +46,32 @@ namespace dpp.opentakrouter
 
         public int Update(StoredMessage msg)
         {
-            return _db.Update(msg);
+            _db.BeginTransaction();
+            var r = _db.Update(msg);
+            _db.Commit();
+
+            return r;
+        }
+
+        public int Upsert(StoredMessage m)
+        {
+            var e = Get(m.Uid);
+            if (e is null)
+            {
+                return Add(m);
+            }
+
+            return Update(e);
+        }
+
+        public int EvictExpired()
+        {
+            return _db.Table<StoredMessage>().Where(m => m.Expiration < DateTime.Now).Delete();
+        }
+
+        public IEnumerable<StoredMessage> GetActive()
+        {
+            return _db.Table<StoredMessage>().Where(m => m.Expiration >= DateTime.Now);
         }
     }
 }
