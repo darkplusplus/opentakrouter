@@ -20,7 +20,7 @@ namespace dpp.opentakrouter
             _clients = clients;
             _messages = messages;
 
-            _persistMessages = _configuration.GetValue("server:persist_messages", false);
+            _persistMessages = _configuration.GetValue("server:persist_messages", true);
         }
 
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
