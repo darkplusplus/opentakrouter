@@ -35,7 +35,7 @@ namespace dpp.opentakrouter
             {
                 var data = Encoding.UTF8.GetString(buffer);
 
-                foreach (Match match in Regex.Matches(data, @"<event.+\/event>"))
+                foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
                 {
                     try
                     {
@@ -57,13 +57,13 @@ namespace dpp.opentakrouter
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, $"server={_component} endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
+                        Log.Error($"server={_component} endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
                     }
                 }
             }
             catch (Exception e)
             {
-                Log.Error(e, $"server={_component} endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
+                Log.Error($"server={_component} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
             }
         }
 

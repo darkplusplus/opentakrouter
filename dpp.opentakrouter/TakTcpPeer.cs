@@ -98,7 +98,7 @@ namespace dpp.opentakrouter
                 {
                     var data = Encoding.UTF8.GetString(buffer);
 
-                    foreach (Match match in Regex.Matches(data, @"<event.+\/event>"))
+                    foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
                     {
                         try
                         {
