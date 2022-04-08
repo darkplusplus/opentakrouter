@@ -73,7 +73,7 @@
     }
 
     function Connect() {
-        var proto = window.location.protocol == "https" ? "wss" : "ws";
+        var proto = window.location.protocol == "https:" ? "wss" : "ws";
         var wsEndpoint = `${proto}://${window.location.hostname}:@ViewData["ws-port"]`;
         var ws = new WebSocket(wsEndpoint);
 
