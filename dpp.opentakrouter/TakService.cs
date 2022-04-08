@@ -52,7 +52,7 @@ namespace dpp.opentakrouter
                 var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
                 if (tlsServerConfig is not null && tlsServerConfig.Enabled)
                 {
-                    var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(
+                    var sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate(
                         tlsServerConfig.Cert,
                         tlsServerConfig.Passphrase)
                     );
@@ -76,7 +76,7 @@ namespace dpp.opentakrouter
                     var port = websocketConfig.Port ?? 5500;
                     if (websocketConfig.Ssl)
                     {
-                        var sslContext = new SslContext(SslProtocols.Tls, new X509Certificate(
+                        var sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate(
                             websocketConfig.Cert,
                             websocketConfig.Passphrase)
                         );
