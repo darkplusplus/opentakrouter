@@ -42,7 +42,7 @@ namespace dpp.opentakrouter
                         tcpServerConfig.Port,
                         router: router);
                     _tcpServer.Start();
-                    Log.Information("server=tak-tcp state=started");
+                    Log.Information($"server=tak-tcp state=started port={tcpServerConfig.Port}");
                 }
                 else
                 {
@@ -63,7 +63,7 @@ namespace dpp.opentakrouter
                         tlsServerConfig.Port,
                         router: router);
                     _tlsServer.Start();
-                    Log.Information("server=tak-ssl state=started");
+                    Log.Information($"server=tak-ssl state=started port={tlsServerConfig.Port}");
                 }
                 else
                 {
@@ -83,13 +83,13 @@ namespace dpp.opentakrouter
 
                         _wssServer = new TakWssServer(sslContext, IPAddress.Any, port, router);
                         _wssServer.Start();
-                        Log.Information("server=wss state=started");
+                        Log.Information($"server=wss state=started port={port}");
                     }
                     else
                     {
                         _wsServer = new TakWsServer(IPAddress.Any, port, router);
                         _wsServer.Start();
-                        Log.Information("server=ws state=started");
+                        Log.Information($"server=ws state=started port={port}");
                     }
                 }
                 else
@@ -127,7 +127,7 @@ namespace dpp.opentakrouter
                             }
                             catch (Exception e)
                             {
-                                Log.Error($"peer={peerConfig.Name} error={e}");
+                                Log.Error($"peer={peerConfig.Name} error=true message=\"{e.Message}\"");
                                 continue;
                             }
                         }
@@ -141,7 +141,7 @@ namespace dpp.opentakrouter
             }
             catch (Exception e)
             {
-                Log.Error(e, "state=error");
+                Log.Error($"state=error error=true message=\"{e.Message}\"");
                 System.Environment.Exit(2);
             }
 

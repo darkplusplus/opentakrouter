@@ -87,7 +87,7 @@ namespace dpp.opentakrouter
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"peer={_name} error={error}");
+            Log.Error($"peer={_name} error=true message=\"{error}\"");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)

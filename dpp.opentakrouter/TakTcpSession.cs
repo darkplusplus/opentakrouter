@@ -69,7 +69,7 @@ namespace dpp.opentakrouter
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"server=tak-tcp endpoint={Socket.RemoteEndPoint} session={Id} error={error}");
+            Log.Error($"server=tak-tcp endpoint={Socket.RemoteEndPoint} session={Id} error=true message=\"{error}\"");
         }
     }
 }
