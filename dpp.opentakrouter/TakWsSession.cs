@@ -45,19 +45,19 @@ namespace dpp.opentakrouter
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, $"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
+                        Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
                     }
                 }
             }
             catch (Exception e)
             {
-                Log.Error(e, $"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false");
+                Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
             }
         }
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} error={error}");
+            Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} error=true message=\"{error}\"");
         }
     }
 }

@@ -27,7 +27,7 @@ namespace dpp.opentakrouter
 
         protected override void OnError(SocketError error)
         {
-            Log.Error($"server=tak-ssl error={error}");
+            Log.Error($"server=tak-ssl error=true message=\"{error}\"");
         }
     }
 }
