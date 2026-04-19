@@ -61,6 +61,9 @@ namespace dpp.opentakrouter
                 return Add(m);
             }
 
+            e.Data = m.Data;
+            e.Timestamp = m.Timestamp;
+            e.Expiration = m.Expiration;
             return Update(e);
         }
 

@@ -57,8 +57,10 @@ namespace dpp.opentakrouter
             {
                 _clients.Upsert(new Client()
                 {
+                    Uid = evt.Uid,
                     Callsign = evt.Detail?.Contact?.Callsign ?? "Unknown",
                     LastSeen = evt.Time,
+                    LastStatus = "Connected",
                     Device = evt.Detail?.Takv?.Device ?? "Unknown",
                     Platform = evt.Detail?.Takv?.Platform ?? "Unknown",
                     Version = evt.Detail?.Takv?.Version ?? "Unknown"

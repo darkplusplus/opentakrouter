@@ -3,8 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace dpp.opentakrouter.Controllers
 {
@@ -15,34 +19,36 @@ namespace dpp.opentakrouter.Controllers
         private readonly ILogger<MartiController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IDataPackageRepository _datapackages;
+        private readonly IClientRepository _clients;
 
         private readonly string _endpoint = "localhost";
         private readonly int _port = 8080;
 
-        public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages)
+        public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages, IClientRepository clients)
         {
             _logger = logger;
             _configuration = configuration;
             _datapackages = datapackages;
+            _clients = clients;
 
-            _endpoint = _configuration.GetValue("server:web:endpoint", Dns.GetHostName());
-            _port = _configuration.GetValue("server:web:port", 8080);
+            _endpoint = _configuration.GetValue("server:public_endpoint", Dns.GetHostName());
+            _port = _configuration.GetValue("server:api:port", 8080);
         }
 
         [Route("/Marti/api/clientEndPoints")]
         [HttpGet]
         public object ClientEndpoints()
         {
-            // TODO: Figure out mgmt context to keep track of client endpoints
-            /*
-            var endpoint = new Dictionary<string, string>()
-            {
-                { "lastEventTime", "2020-01-31T15:30:00.000Z" },
-                { "lastStatus", "Connected" },
-                { "uid", "asdf" },
-                { "callsign": "GOOSE" },
-            }
-            */
+            var clients = _clients.Search()
+                .Select(client => new Dictionary<string, object>()
+                {
+                    { "lastEventTime", client.LastSeen.ToUniversalTime().ToString("O") },
+                    { "lastStatus", client.LastStatus ?? "Connected" },
+                    { "uid", client.Uid ?? "" },
+                    { "callsign", client.Callsign ?? "Unknown" },
+                })
+                .Cast<object>()
+                .ToList();
 
             return new Dictionary<string, object>()
             {
@@ -51,7 +57,7 @@ namespace dpp.opentakrouter.Controllers
                 { "ServerConnectionString", _configuration.GetValue("server:public_endpoint", "") },
                 { "NotificationId", "" },
                 { "type", "com.bbn.marti.remote.ClientEndpoint" },
-                { "data", new List<object>() },
+                { "data", clients },
             };
         }
 
@@ -102,7 +108,7 @@ namespace dpp.opentakrouter.Controllers
                     { "Name", dp.Name },
                     { "Hash", dp.Hash },
                     { "PrimaryKey", dp.PrimaryKey },
-                    { "SubmissionDateTime", $"{dp.SubmissionDateTime.ToUniversalTime():u}" },
+                    { "SubmissionDateTime", dp.SubmissionDateTime.ToUniversalTime().ToString("O") },
                     { "SubmissionUser", dp.SubmissionUser },
                     { "CreatorUid", dp.CreatorUid },
                     { "Keywords", dp.Keywords },
@@ -162,12 +168,14 @@ namespace dpp.opentakrouter.Controllers
 
         [Route("/Marti/api/sync/metadata/{hash}/tool")]
         [HttpPut]
-        public IActionResult UpdateDatapackageMetadata(string hash)
+        public async Task<IActionResult> UpdateDatapackageMetadata(string hash)
         {
             try
             {
                 var dp = _datapackages.Get(hash);
-                dp.IsPrivate = !Request.Body.ToString().Contains("public");
+                using var reader = new StreamReader(Request.Body, Encoding.UTF8);
+                var body = await reader.ReadToEndAsync();
+                dp.IsPrivate = !body.Contains("public", StringComparison.OrdinalIgnoreCase);
                 _datapackages.Update(dp);
 
                 return Ok($"https://{_endpoint}:{_port}/Marti/sync/content?hash={hash}");

@@ -51,6 +51,12 @@ namespace dpp.opentakrouter
                 return Add(c);
             }
 
+            e.Uid = c.Uid;
+            e.LastSeen = c.LastSeen;
+            e.LastStatus = c.LastStatus;
+            e.Device = c.Device;
+            e.Platform = c.Platform;
+            e.Version = c.Version;
             return Update(e);
         }
     }
