@@ -42,12 +42,17 @@ namespace dpp.opentakrouter
 
         public static string Serialize(CotMessageEnvelope envelope)
         {
-            return JsonSerializer.Serialize(FromEnvelope(envelope));
+            return JsonSerializer.Serialize(ToPayload(envelope));
         }
 
         public static string Serialize(Event evt)
         {
-            return JsonSerializer.Serialize(FromEvent(evt));
+            return JsonSerializer.Serialize(ToPayload(CotMessageEnvelope.FromEvent(evt)));
+        }
+
+        public static object ToPayload(CotMessageEnvelope envelope)
+        {
+            return FromEnvelope(envelope);
         }
     }
 }

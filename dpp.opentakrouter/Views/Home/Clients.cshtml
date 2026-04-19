@@ -2,43 +2,32 @@
     ViewData["Title"] = "Clients";
 }
 
-<div class="text-center">
-    <section class="content">
-        <div class="card">
-            <div class="card-body table-responsive p-0" style="height: 90vh;">
-                <table class="table table-head-fixed text-nowrap">
-                    <thead>
-                        <tr>
-                            <th>Callsign</th>
-                            <th>Device</th>
-                            <th>Platform</th>
-                            <th>Version</th>
-                            <th>LastSeen</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var client in ViewData["clients"] as IEnumerable<Client>)
-                        {
-                        <tr>
-                            <td>@client.Callsign</td>
-                            <td>@client.Device</td>
-                            <td>@client.Platform</td>
-                            <td>@client.Version</td>
-                            <td>@client.LastSeen.ToUniversalTime().ToString("u")</td>
-                            <td>
-                                <!-- TODO: allow disconnect -->
-                                <button type="button" class="btn btn-danger btn-sm" disabled>
-                                    <i class="fas fa-trash">
-                                    </i>
-                                    Disconnect
-                                </button>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-</div>
+<section class="otr-card otr-table-wrap">
+    <table class="otr-table">
+        <thead>
+            <tr>
+                <th>Callsign</th>
+                <th>Device</th>
+                <th>Platform</th>
+                <th>Version</th>
+                <th>Last Seen</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var client in ViewData["clients"] as IEnumerable<Client>)
+            {
+                <tr>
+                    <td>@client.Callsign</td>
+                    <td>@client.Device</td>
+                    <td>@client.Platform</td>
+                    <td>@client.Version</td>
+                    <td>@client.LastSeen.ToUniversalTime().ToString("u")</td>
+                    <td>
+                        <button type="button" class="otr-button" disabled>Disconnect</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>

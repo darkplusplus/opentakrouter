@@ -44,6 +44,28 @@
                 "passphrase": "atakatak"
             }
         },
+        "links": [
+            // normalized TAK link model. when present, this takes precedence over
+            // the legacy `server.tak.*` and `server.peers` settings above.
+            // {
+            //     "name": "atak-listener",
+            //     "enabled": true,
+            //     "role": "listen",
+            //     "transport": "tcp",
+            //     "port": 58087,
+            //     "protocol": "xml"
+            // },
+            // {
+            //     "name": "regional-peer",
+            //     "enabled": true,
+            //     "role": "connect",
+            //     "transport": "tcp",
+            //     "address": "otr.example.net",
+            //     "port": 58087,
+            //     "mode": "duplex",
+            //     "protocol": "prefer-protobuf"
+            // }
+        ],
         "routing": {
             "inbound": [
             ],

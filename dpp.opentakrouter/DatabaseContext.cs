@@ -25,7 +25,8 @@ namespace dpp.opentakrouter
                 null, null, null, null);
 
             Database = new SQLiteConnection(options);
-
+            Database.BusyTimeout = TimeSpan.FromSeconds(5);
+            Database.EnableWriteAheadLogging();
         }
     }
 }

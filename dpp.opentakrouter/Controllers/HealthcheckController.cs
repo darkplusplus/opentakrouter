@@ -5,6 +5,7 @@ using System.Collections.Generic;
 namespace dpp.opentakrouter.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "internal")]
     [Route("[controller]")]
     public class HealthcheckController : ControllerBase
     {

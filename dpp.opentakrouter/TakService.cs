@@ -34,42 +34,9 @@ namespace dpp.opentakrouter
         {
             try
             {
-                var tcpServerConfig = configuration.GetSection("server:tak:tcp").Get<TakServerConfig>();
-                if (tcpServerConfig is not null && tcpServerConfig.Enabled)
+                foreach (var link in GetTakLinks())
                 {
-                    _tcpServer = new TakTcpServer(
-                        IPAddress.Any,
-                        tcpServerConfig.Port,
-                        router: router,
-                        protocolPreference: TakProtocolPreferences.Parse(tcpServerConfig.Protocol));
-                    _tcpServer.Start();
-                    Log.Information($"server=tak-tcp state=started port={tcpServerConfig.Port}");
-                }
-                else
-                {
-                    Log.Information("server=tak-tcp state=skipped");
-                }
-
-                var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
-                if (tlsServerConfig is not null && tlsServerConfig.Enabled)
-                {
-                    var sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate(
-                        tlsServerConfig.Cert,
-                        tlsServerConfig.Passphrase)
-                    );
-
-                    _tlsServer = new TakTlsServer(
-                        sslContext,
-                        IPAddress.Any,
-                        tlsServerConfig.Port,
-                        router: router,
-                        protocolPreference: TakProtocolPreferences.Parse(tlsServerConfig.Protocol));
-                    _tlsServer.Start();
-                    Log.Information($"server=tak-ssl state=started port={tlsServerConfig.Port}");
-                }
-                else
-                {
-                    Log.Information("server=tak-ssl state=skipped");
+                    StartTakLink(link);
                 }
 
                 var websocketConfig = configuration.GetSection("server:websockets").Get<WebConfig>();
@@ -78,10 +45,9 @@ namespace dpp.opentakrouter
                     var port = websocketConfig.Port ?? 5500;
                     if (websocketConfig.Ssl)
                     {
-                        var sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate(
-                            websocketConfig.Cert,
-                            websocketConfig.Passphrase)
-                        );
+                        var sslContext = new SslContext(
+                            SslProtocols.Tls12,
+                            LoadPkcs12Certificate(websocketConfig.Cert, websocketConfig.Passphrase));
 
                         _wssServer = new TakWssServer(sslContext, IPAddress.Any, port, router);
                         _wssServer.Start();
@@ -98,48 +64,6 @@ namespace dpp.opentakrouter
                 {
                     Log.Information("server=ws state=skipped");
                     Log.Information("server=wss state=skipped");
-                }
-
-                var peerConfigs = configuration.GetSection("server:peers").Get<List<TakPeerConfig>>();
-                if (peerConfigs is not null)
-                {
-                    foreach (var peerConfig in peerConfigs)
-                    {
-                        if (peerConfig.Ssl)
-                        {
-                            throw new NotImplementedException("Federation of SSL peers is not implemented yet");
-                        }
-                        else
-                        {
-                            try
-                            {
-                                var address = Dns.GetHostEntry(peerConfig.Address)
-                                    .AddressList.First(addr => addr.AddressFamily == AddressFamily.InterNetwork)
-                                    .ToString();
-
-                                var mode = (TakTcpPeer.Mode)Enum.Parse(typeof(TakTcpPeer.Mode), peerConfig.Mode, true);
-                                var client = new TakTcpPeer(
-                                    peerConfig.Name,
-                                    address,
-                                    peerConfig.Port,
-                                    router: router,
-                                    protocolPreference: TakProtocolPreferences.Parse(peerConfig.Protocol),
-                                    mode: mode
-                                );
-                                _tcpClients.Add(client);
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error($"peer={peerConfig.Name} error=true message=\"{e.Message}\"");
-                                continue;
-                            }
-                        }
-                    }
-
-                    foreach (var client in _tcpClients)
-                    {
-                        client.Connect();
-                    }
                 }
             }
             catch (Exception e)
@@ -186,5 +110,146 @@ namespace dpp.opentakrouter
         }
 
         public void Dispose() => GC.SuppressFinalize(this);
+
+        private IEnumerable<TakLinkConfig> GetTakLinks()
+        {
+            var configuredLinks = configuration.GetSection("server:links").Get<List<TakLinkConfig>>();
+            if ((configuredLinks != null) && (configuredLinks.Count > 0))
+            {
+                return configuredLinks.Where(link => link?.Enabled ?? false);
+            }
+
+            var legacyLinks = new List<TakLinkConfig>();
+            var tcpServerConfig = configuration.GetSection("server:tak:tcp").Get<TakServerConfig>();
+            if ((tcpServerConfig is not null) && tcpServerConfig.Enabled)
+            {
+                legacyLinks.Add(new TakLinkConfig
+                {
+                    Name = "tak-tcp",
+                    Enabled = true,
+                    Role = "listen",
+                    Transport = "tcp",
+                    Port = tcpServerConfig.Port,
+                    Protocol = tcpServerConfig.Protocol,
+                });
+            }
+
+            var tlsServerConfig = configuration.GetSection("server:tak:tls").Get<TakServerConfig>();
+            if ((tlsServerConfig is not null) && tlsServerConfig.Enabled)
+            {
+                legacyLinks.Add(new TakLinkConfig
+                {
+                    Name = "tak-tls",
+                    Enabled = true,
+                    Role = "listen",
+                    Transport = "tls",
+                    Port = tlsServerConfig.Port,
+                    Cert = tlsServerConfig.Cert,
+                    Passphrase = tlsServerConfig.Passphrase,
+                    Protocol = tlsServerConfig.Protocol,
+                });
+            }
+
+            var peerConfigs = configuration.GetSection("server:peers").Get<List<TakPeerConfig>>();
+            if (peerConfigs != null)
+            {
+                foreach (var peer in peerConfigs)
+                {
+                    legacyLinks.Add(new TakLinkConfig
+                    {
+                        Name = peer.Name,
+                        Enabled = true,
+                        Role = "connect",
+                        Transport = peer.Ssl ? "tls" : "tcp",
+                        Address = peer.Address,
+                        Port = peer.Port,
+                        Mode = peer.Mode,
+                        Protocol = peer.Protocol,
+                    });
+                }
+            }
+
+            return legacyLinks;
+        }
+
+        private void StartTakLink(TakLinkConfig link)
+        {
+            var transport = (link.Transport ?? "tcp").ToLowerInvariant();
+            var role = (link.Role ?? "listen").ToLowerInvariant();
+            var linkName = string.IsNullOrWhiteSpace(link.Name) ? $"{role}-{transport}-{link.Port}" : link.Name;
+
+            if (role == "listen")
+            {
+                if (transport == "tcp")
+                {
+                    _tcpServer = new TakTcpServer(
+                        IPAddress.Any,
+                        link.Port,
+                        router: router,
+                        protocolPreference: TakProtocolPreferences.Parse(link.Protocol));
+                    _tcpServer.Start();
+                    Log.Information($"link={linkName} role=listen transport=tcp state=started port={link.Port}");
+                    return;
+                }
+
+                if (transport == "tls")
+                {
+                    var sslContext = new SslContext(
+                        SslProtocols.Tls12,
+                        LoadPkcs12Certificate(link.Cert, link.Passphrase));
+                    _tlsServer = new TakTlsServer(
+                        sslContext,
+                        IPAddress.Any,
+                        link.Port,
+                        router: router,
+                        protocolPreference: TakProtocolPreferences.Parse(link.Protocol));
+                    _tlsServer.Start();
+                    Log.Information($"link={linkName} role=listen transport=tls state=started port={link.Port}");
+                    return;
+                }
+            }
+
+            if (role == "connect")
+            {
+                if (transport == "tls")
+                {
+                    Log.Error($"link={linkName} role=connect transport=tls error=true message=\"TLS federation connectors are not implemented yet\"");
+                    return;
+                }
+
+                try
+                {
+                    var address = Dns.GetHostEntry(link.Address)
+                        .AddressList.First(addr => addr.AddressFamily == AddressFamily.InterNetwork)
+                        .ToString();
+
+                    var mode = (TakTcpPeer.Mode)Enum.Parse(typeof(TakTcpPeer.Mode), link.Mode ?? "duplex", true);
+                    var client = new TakTcpPeer(
+                        linkName,
+                        address,
+                        link.Port,
+                        router: router,
+                        protocolPreference: TakProtocolPreferences.Parse(link.Protocol),
+                        mode: mode
+                    );
+                    _tcpClients.Add(client);
+                    client.Connect();
+                    Log.Information($"link={linkName} role=connect transport=tcp state=started endpoint={address}:{link.Port}");
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"link={linkName} role=connect transport={transport} error=true message=\"{e.Message}\"");
+                }
+            }
+        }
+
+        private static X509Certificate2 LoadPkcs12Certificate(string path, string password)
+        {
+            return X509CertificateLoader.LoadPkcs12FromFile(
+                path,
+                password,
+                X509KeyStorageFlags.DefaultKeySet,
+                Pkcs12LoaderLimits.Defaults);
+        }
     }
 }

@@ -4,60 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@ViewData["Title"] - OpenTakRouter</title>
-
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="/lib/fontsource/200.css">
-    <link rel="stylesheet" href="/lib/fontsource/300.css">
-    <link rel="stylesheet" href="/lib/fontsource/400.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="/lib/admin-lte/css/adminlte.min.css">
+    <link rel="stylesheet" href="/assets/site.css" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="hold-transition sidebar-mini">
-    <!-- Site wrapper -->
-    <div class="wrapper">
-
+<body>
+    <div class="otr-shell">
         <partial name="_MainNavigation" />
-
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
-            <section class="content-header">
-                <div class="container-fluid">
-                    <h3>@ViewData["Title"]</h3>
-                </div><!-- /.container-fluid -->
-            </section>
-
-            <!-- Main content -->
-            <section class="content">
-
-                <!-- Default box -->
-                <div class="card">
-                    <div class="card-body">
-                        @RenderBody()
-                    </div>
-                    <!-- /.card-body -->
-                    
+        <main class="otr-main">
+            <header class="otr-page-header">
+                <div>
+                    <h1 class="otr-page-title">@ViewData["Title"]</h1>
+                    <p class="otr-page-subtitle">Cursor-on-Target routing, federation, and operator visibility.</p>
                 </div>
-                <!-- /.card -->
-
-            </section>
-            <!-- /.content -->
-        </div>
-        <!-- /.content-wrapper -->
-
-
+            </header>
+            <div class="otr-page-body">
+                @RenderBody()
+            </div>
+        </main>
     </div>
-    <!-- ./wrapper -->
-    <!-- jQuery -->
-    <script src="/lib/jquery/jquery.min.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="/lib/bootstrap/js/bootstrap.bundle.js"></script>
-    <!-- AdminLTE App -->
-    <script src="lib/admin-lte/js/adminlte.min.js"></script>
-    
+    <script type="module" src="/assets/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

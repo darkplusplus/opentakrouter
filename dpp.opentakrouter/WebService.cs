@@ -20,7 +20,13 @@ namespace dpp.opentakrouter
             services.AddControllersWithViews();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "OpenTakRouter", Version = "v1" });
+                c.SwaggerDoc("internal", new OpenApiInfo { Title = "OpenTakRouter Internal API", Version = "v1" });
+                c.SwaggerDoc("marti", new OpenApiInfo { Title = "OpenTakRouter MARTI Compatibility API", Version = "v1" });
+                c.DocInclusionPredicate((documentName, apiDescription) =>
+                {
+                    var groupName = apiDescription.GroupName ?? "internal";
+                    return string.Equals(documentName, groupName, System.StringComparison.OrdinalIgnoreCase);
+                });
             });
         }
 
@@ -33,7 +39,11 @@ namespace dpp.opentakrouter
                 if (apiConfig.Swagger)
                 {
                     app.UseSwagger();
-                    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OpenTakRouter v1"));
+                    app.UseSwaggerUI(c =>
+                    {
+                        c.SwaggerEndpoint("/swagger/internal/swagger.json", "OpenTakRouter Internal API");
+                        c.SwaggerEndpoint("/swagger/marti/swagger.json", "OpenTakRouter MARTI Compatibility API");
+                    });
                 }
 
                 if (apiConfig.Ssl)

@@ -1,0 +1,15 @@
+{
+  "name": "opentakrouter-ui",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {
+    "build:ui": "esbuild dpp.opentakrouter/frontend/site.js --bundle --format=esm --sourcemap --outfile=dpp.opentakrouter/wwwroot/assets/site.js --asset-names=assets/[name]-[hash] --loader:.png=file --loader:.svg=file"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "milsymbol": "^3.0.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

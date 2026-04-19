@@ -7,6 +7,7 @@ using System.Net.Mime;
 namespace dpp.opentakrouter.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "internal")]
     [Route("[controller]")]
     public class EventsController : ControllerBase
     {

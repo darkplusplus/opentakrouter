@@ -248,6 +248,9 @@ orleans.codegen.cs
 # (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
 #bower_components/
 
+# Node-based frontend tooling
+node_modules/
+
 # RIA/Silverlight projects
 Generated_Code/
 

@@ -23,6 +23,9 @@ namespace dpp.opentakrouter
         public string[] SourcePrefixes { get; set; } = Array.Empty<string>();
         public string[] DestinationPrefixes { get; set; } = Array.Empty<string>();
         public string[] TypePrefixes { get; set; } = Array.Empty<string>();
+        public string[] Uids { get; set; } = Array.Empty<string>();
+        public string[] Callsigns { get; set; } = Array.Empty<string>();
+        public double? MaxAgeSeconds { get; set; }
         public double? MinLat { get; set; }
         public double? MaxLat { get; set; }
         public double? MinLon { get; set; }
@@ -112,6 +115,21 @@ namespace dpp.opentakrouter
                 return false;
             }
 
+            if (!MatchesValues(rule.Uids, envelope.Event?.Uid))
+            {
+                return false;
+            }
+
+            if (!MatchesValues(rule.Callsigns, envelope.Event?.Detail?.Contact?.Callsign))
+            {
+                return false;
+            }
+
+            if (!MatchesAge(rule, envelope))
+            {
+                return false;
+            }
+
             return MatchesPoint(rule, envelope);
         }
 
@@ -160,6 +178,41 @@ namespace dpp.opentakrouter
             }
 
             return true;
+        }
+
+        private static bool MatchesValues(IEnumerable<string> values, string candidate)
+        {
+            var expected = values?.Where(value => !string.IsNullOrWhiteSpace(value)).ToArray() ?? Array.Empty<string>();
+            if (expected.Length == 0)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return false;
+            }
+
+            return expected.Any(value => string.Equals(value, candidate, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool MatchesAge(RouteRule rule, CotMessageEnvelope envelope)
+        {
+            if (!rule.MaxAgeSeconds.HasValue)
+            {
+                return true;
+            }
+
+            var evt = envelope.Event;
+            if (evt == null)
+            {
+                return false;
+            }
+
+            var time = evt.Time.Kind == DateTimeKind.Utc
+                ? evt.Time
+                : evt.Time.ToUniversalTime();
+            return (DateTime.UtcNow - time).TotalSeconds <= rule.MaxAgeSeconds.Value;
         }
     }
 }

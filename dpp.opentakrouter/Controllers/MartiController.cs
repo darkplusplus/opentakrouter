@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace dpp.opentakrouter.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "marti")]
     [Route("[controller]")]
     public class MartiController : ControllerBase
     {
