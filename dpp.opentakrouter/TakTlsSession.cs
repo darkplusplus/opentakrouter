@@ -3,30 +3,37 @@ using NetCoreServer;
 using Serilog;
 using System;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace dpp.opentakrouter
 {
     public class TakTlsSession : SslSession
     {
         private readonly IRouter _router;
+        private readonly TakConnectionProtocol _protocol;
         private const string _component = "tak-ssl";
         public TakTlsSession(TakTlsServer server) : base(server)
         {
             _router = server.Router;
+            _protocol = new TakConnectionProtocol(TakConnectionRole.Server, server.ProtocolPreference);
+            _router.RaiseRoutedEvent += OnRoutedEvent;
         }
         protected override void OnConnected()
         {
             Log.Information($"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} state=connected");
+            _protocol.Reset();
+            foreach (var data in _protocol.GetInitialMessages())
+            {
+                SendAsync(data);
+            }
             foreach (var evt in _router.GetActiveEvents())
             {
-                Send(evt.ToXmlString());
+                SendAsync(_protocol.Serialize(CotMessageEnvelope.FromEvent(evt)));
             }
         }
 
         protected override void OnDisconnected()
         {
+            _router.RaiseRoutedEvent -= OnRoutedEvent;
             Log.Information($"server=tak-ssl session={Id} state=disconnected");
         }
 
@@ -34,21 +41,24 @@ namespace dpp.opentakrouter
         {
             try
             {
-                var data = Encoding.UTF8.GetString(buffer);
-
-                foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
+                foreach (var result in _protocol.Read(buffer, (int)offset, (int)size, $"server:{_component}:{Id}"))
                 {
                     try
                     {
-                        var evt = Event.Parse(match.Value);
+                        var evt = result.Envelope.Event;
                         Log.Information($"server={_component} endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={evt.Uid} type={evt.Type}");
+                        if (result.ControlResponse != null)
+                        {
+                            SendAsync(result.ControlResponse);
+                        }
+
                         if (evt.IsA(CotPredicates.t_ping))
                         {
-                            SendAsync(Event.Pong(evt).ToXmlString());
+                            SendAsync(_protocol.Serialize(CotMessageEnvelope.FromEvent(Event.Pong(evt))));
                             return;
                         }
 
-                        _router.Send(evt, buffer);
+                        _router.Route(result.Envelope);
                     }
                     catch (OverflowException)
                     {
@@ -71,6 +81,16 @@ namespace dpp.opentakrouter
         protected override void OnError(SocketError error)
         {
             Log.Error($"server=tak-ssl endpoint={Socket.RemoteEndPoint} session={Id} error=true message=\"{error}\"");
+        }
+
+        private void OnRoutedEvent(object sender, RoutedEventArgs e)
+        {
+            if (e.Envelope.SourceId == $"server:{_component}:{Id}")
+            {
+                return;
+            }
+
+            SendAsync(_protocol.Serialize(e.Envelope));
         }
     }
 }

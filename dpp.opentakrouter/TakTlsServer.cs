@@ -8,21 +8,17 @@ namespace dpp.opentakrouter
     public class TakTlsServer : SslServer
     {
         public IRouter Router;
+        public TakProtocolPreference ProtocolPreference { get; }
 
-        public TakTlsServer(SslContext context, IPAddress address, int port, IRouter router) : base(context, address, port)
+        public TakTlsServer(SslContext context, IPAddress address, int port, IRouter router, TakProtocolPreference protocolPreference) : base(context, address, port)
         {
             this.Router = router;
-            this.Router.RaiseRoutedEvent += OnRoutedEvent;
+            ProtocolPreference = protocolPreference;
         }
 
         protected override SslSession CreateSession()
         {
             return new TakTlsSession(this);
-        }
-
-        protected void OnRoutedEvent(object sender, RoutedEventArgs e)
-        {
-            _ = this.Multicast(e.Data);
         }
 
         protected override void OnError(SocketError error)

@@ -40,7 +40,8 @@ namespace dpp.opentakrouter
                     _tcpServer = new TakTcpServer(
                         IPAddress.Any,
                         tcpServerConfig.Port,
-                        router: router);
+                        router: router,
+                        protocolPreference: TakProtocolPreferences.Parse(tcpServerConfig.Protocol));
                     _tcpServer.Start();
                     Log.Information($"server=tak-tcp state=started port={tcpServerConfig.Port}");
                 }
@@ -61,7 +62,8 @@ namespace dpp.opentakrouter
                         sslContext,
                         IPAddress.Any,
                         tlsServerConfig.Port,
-                        router: router);
+                        router: router,
+                        protocolPreference: TakProtocolPreferences.Parse(tlsServerConfig.Protocol));
                     _tlsServer.Start();
                     Log.Information($"server=tak-ssl state=started port={tlsServerConfig.Port}");
                 }
@@ -121,6 +123,7 @@ namespace dpp.opentakrouter
                                     address,
                                     peerConfig.Port,
                                     router: router,
+                                    protocolPreference: TakProtocolPreferences.Parse(peerConfig.Protocol),
                                     mode: mode
                                 );
                                 _tcpClients.Add(client);
@@ -163,12 +166,12 @@ namespace dpp.opentakrouter
 
             if (_wsServer is not null)
             {
-                _tcpServer.Stop();
+                _wsServer.Stop();
             }
 
             if (_wssServer is not null)
             {
-                _tlsServer.Stop();
+                _wssServer.Stop();
             }
 
             if (_tcpClients is not null)

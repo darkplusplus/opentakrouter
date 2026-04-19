@@ -8,21 +8,17 @@ namespace dpp.opentakrouter
     public class TakTcpServer : TcpServer
     {
         public IRouter Router;
+        public TakProtocolPreference ProtocolPreference { get; }
 
-        public TakTcpServer(IPAddress address, int port, IRouter router) : base(address, port)
+        public TakTcpServer(IPAddress address, int port, IRouter router, TakProtocolPreference protocolPreference) : base(address, port)
         {
             this.Router = router;
-            this.Router.RaiseRoutedEvent += OnRoutedEvent;
+            ProtocolPreference = protocolPreference;
         }
 
         protected override TcpSession CreateSession()
         {
             return new TakTcpSession(this);
-        }
-
-        protected void OnRoutedEvent(object sender, RoutedEventArgs e)
-        {
-            _ = this.Multicast(e.Data);
         }
 
         protected override void OnError(SocketError error)

@@ -44,6 +44,12 @@
                 "passphrase": "atakatak"
             }
         },
+        "routing": {
+            "inbound": [
+            ],
+            "outbound": [
+            ]
+        },
         "peers": [
         ]
     }

@@ -6,5 +6,6 @@
         public int Port { get; set; }
         public string Cert { get; set; } = "";
         public string Passphrase { get; set; } = "";
+        public string Protocol { get; set; } = "xml";
     }
 }

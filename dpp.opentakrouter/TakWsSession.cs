@@ -41,7 +41,7 @@ namespace dpp.opentakrouter
                     {
                         var evt = Event.Parse(match.Value);
                         Log.Information($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={evt.Uid} type={evt.Type}");
-                        _router.Send(evt, null);
+                        _router.Route(CotMessageEnvelope.FromEvent(evt, $"server:ws:{Id}", CotTransportKind.WebSocketText));
                     }
                     catch (Exception e)
                     {

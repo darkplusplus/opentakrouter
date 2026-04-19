@@ -7,7 +7,7 @@ namespace dpp.opentakrouter
     public interface IRouter
     {
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
-        public void Send(Event e, byte[] data);
+        public void Route(CotMessageEnvelope envelope);
         IEnumerable<Event> GetActiveEvents();
     }
 }

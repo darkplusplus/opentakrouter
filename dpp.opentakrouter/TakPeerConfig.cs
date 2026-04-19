@@ -7,5 +7,6 @@
         public int Port { get; set; }
         public bool Ssl { get; set; } = false;
         public string Mode { get; set; } = "duplex";
+        public string Protocol { get; set; } = "xml";
     }
 }

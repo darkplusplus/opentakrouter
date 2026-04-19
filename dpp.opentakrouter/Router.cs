@@ -13,6 +13,7 @@ namespace dpp.opentakrouter
         private readonly IMessageRepository _messages;
 
         private readonly bool _persistMessages;
+        private readonly RoutePolicyEngine _policyEngine;
 
         public Router(IConfiguration configuration, IClientRepository clients, IMessageRepository messages)
         {
@@ -21,6 +22,7 @@ namespace dpp.opentakrouter
             _messages = messages;
 
             _persistMessages = _configuration.GetValue("server:persist_messages", true);
+            _policyEngine = new RoutePolicyEngine(_configuration.GetSection("server:routing").Get<RoutePolicyConfig>());
         }
 
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
@@ -37,52 +39,68 @@ namespace dpp.opentakrouter
             return results;
         }
 
-        public void Send(Event e, byte[] data)
+        public void Route(CotMessageEnvelope envelope)
         {
-            data ??= (new Message() { Event = e }).ToXmlBytes();
+            var evt = envelope?.Event;
+            if (evt == null)
+            {
+                return;
+            }
 
-            if (e.IsA(CotPredicates.t_ping))
+            var inboundDecision = _policyEngine.EvaluateInbound(envelope);
+            if (!inboundDecision.Allowed)
+            {
+                return;
+            }
+
+            if (evt.IsA(CotPredicates.t_ping))
             {
                 _clients.Upsert(new Client()
                 {
-                    Callsign = e.Detail.Contact?.Callsign ?? "Unknown",
-                    LastSeen = e.Time,
-                    Device = e.Detail.Takv?.Device ?? "Unknown",
-                    Platform = e.Detail.Takv?.Platform ?? "Unknown",
-                    Version = e.Detail.Takv?.Version ?? "Unknown"
+                    Callsign = evt.Detail?.Contact?.Callsign ?? "Unknown",
+                    LastSeen = evt.Time,
+                    Device = evt.Detail?.Takv?.Device ?? "Unknown",
+                    Platform = evt.Detail?.Takv?.Platform ?? "Unknown",
+                    Version = evt.Detail?.Takv?.Version ?? "Unknown"
                 });
 
                 return;
             }
 
-            if (_persistMessages)
+            var shouldPersist = inboundDecision.Persist ?? _persistMessages;
+            if (shouldPersist)
             {
                 _messages.Upsert(new Models.StoredMessage()
                 {
-                    Uid = e.Uid,
-                    Data = e.ToXmlString(),
-                    Timestamp = e.Time,
-                    Expiration = e.Stale
+                    Uid = evt.Uid,
+                    Data = evt.ToXmlString(),
+                    Timestamp = evt.Time,
+                    Expiration = evt.Stale
                 });
             }
 
-            OnRaiseRoutedEvent(new RoutedEventArgs(e, data));
+            OnRaiseRoutedEvent(new RoutedEventArgs(envelope));
         }
 
         protected virtual void OnRaiseRoutedEvent(RoutedEventArgs e)
         {
             RaiseRoutedEvent?.Invoke(this, e);
         }
+
+        internal RouteDecision EvaluateOutbound(CotMessageEnvelope envelope, string destinationId)
+        {
+            return _policyEngine.EvaluateOutbound(envelope, destinationId);
+        }
     }
 
     public class RoutedEventArgs : EventArgs
     {
-        public Event Event { get; set; }
-        public byte[] Data { get; set; }
-        public RoutedEventArgs(Event e, byte[] data)
+        public CotMessageEnvelope Envelope { get; }
+        public Event Event => Envelope.Event;
+
+        public RoutedEventArgs(CotMessageEnvelope envelope)
         {
-            Event = e;
-            Data = data ?? (new Message() { Event = e }).ToXmlBytes();
+            Envelope = envelope;
         }
     }
 }

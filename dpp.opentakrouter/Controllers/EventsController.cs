@@ -32,7 +32,7 @@ namespace dpp.opentakrouter.Controllers
                 {
                     var data = sr.ReadToEnd();
                     var evt = cot.Event.Parse(data);
-                    _router.Send(evt, null);
+                    _router.Route(CotMessageEnvelope.FromEvent(evt, "api/events", CotTransportKind.HttpApi));
                 }
             }
             catch

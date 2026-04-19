@@ -2,8 +2,6 @@
 using Serilog;
 using System;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using TcpClient = NetCoreServer.TcpClient;
 
@@ -22,11 +20,12 @@ namespace dpp.opentakrouter
         private readonly Mode _clientMode;
         private readonly int _initialBackoff = 3000;
         private readonly int _maxBackoff = 300000;
+        private readonly TakConnectionProtocol _protocol;
         private int _backoff;
         private bool _stop;
         private readonly string _name;
 
-        public TakTcpPeer(string name, string address, int port, IRouter router, Mode mode = Mode.Duplex, int minBackoff = 3000, int maxBackoff = 300000) : base(address, port)
+        public TakTcpPeer(string name, string address, int port, IRouter router, TakProtocolPreference protocolPreference, Mode mode = Mode.Duplex, int minBackoff = 3000, int maxBackoff = 300000) : base(address, port)
         {
             _stop = false;
             _name = name;
@@ -36,6 +35,7 @@ namespace dpp.opentakrouter
             _backoff = _initialBackoff;
 
             _router = router;
+            _protocol = new TakConnectionProtocol(TakConnectionRole.Client, protocolPreference);
             _router.RaiseRoutedEvent += OnRoutedEvent;
         }
 
@@ -43,7 +43,12 @@ namespace dpp.opentakrouter
         {
             if (_clientMode == Mode.Transmit || _clientMode == Mode.Duplex)
             {
-                _ = Send(e.Data);
+                if (e.Envelope.SourceId == $"peer:{_name}")
+                {
+                    return;
+                }
+
+                _ = Send(_protocol.Serialize(e.Envelope));
             }
         }
 
@@ -56,10 +61,11 @@ namespace dpp.opentakrouter
         {
             Log.Information($"peer={_name} state=connected");
             _backoff = _initialBackoff;
+            _protocol.Reset();
 
             foreach (var evt in _router.GetActiveEvents())
             {
-                SendAsync(evt.ToXmlString());
+                SendAsync(_protocol.Serialize(CotMessageEnvelope.FromEvent(evt)));
             }
         }
 
@@ -96,21 +102,24 @@ namespace dpp.opentakrouter
             {
                 try
                 {
-                    var data = Encoding.UTF8.GetString(buffer);
-
-                    foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
+                    foreach (var result in _protocol.Read(buffer, (int)offset, (int)size, $"peer:{_name}"))
                     {
                         try
                         {
-                            var evt = Event.Parse(match.Value);
+                            var evt = result.Envelope.Event;
                             Log.Information($"peer={_name} event=cot uid={evt.Uid} type={evt.Type}");
+                            if (result.ControlResponse != null)
+                            {
+                                SendAsync(result.ControlResponse);
+                            }
+
                             if (evt.IsA(CotPredicates.t_ping))
                             {
-                                SendAsync(Event.Pong(evt).ToXmlString());
+                                SendAsync(_protocol.Serialize(CotMessageEnvelope.FromEvent(Event.Pong(evt))));
                                 return;
                             }
 
-                            _router.Send(evt, buffer);
+                            _router.Route(result.Envelope);
                         }
                         catch (OverflowException)
                         {
