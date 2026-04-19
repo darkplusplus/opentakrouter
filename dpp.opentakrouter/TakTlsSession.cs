@@ -85,7 +85,13 @@ namespace dpp.opentakrouter
 
         private void OnRoutedEvent(object sender, RoutedEventArgs e)
         {
-            if (e.Envelope.SourceId == $"server:{_component}:{Id}")
+            var destinationId = $"server:{_component}:{Id}";
+            if (e.Envelope.SourceId == destinationId)
+            {
+                return;
+            }
+
+            if (!_router.ShouldRouteTo(e.Envelope, destinationId))
             {
                 return;
             }

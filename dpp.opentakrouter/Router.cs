@@ -91,6 +91,11 @@ namespace dpp.opentakrouter
         {
             return _policyEngine.EvaluateOutbound(envelope, destinationId);
         }
+
+        public bool ShouldRouteTo(CotMessageEnvelope envelope, string destinationId)
+        {
+            return EvaluateOutbound(envelope, destinationId).Allowed;
+        }
     }
 
     public class RoutedEventArgs : EventArgs

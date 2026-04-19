@@ -43,7 +43,13 @@ namespace dpp.opentakrouter
         {
             if (_clientMode == Mode.Transmit || _clientMode == Mode.Duplex)
             {
-                if (e.Envelope.SourceId == $"peer:{_name}")
+                var destinationId = $"peer:{_name}";
+                if (e.Envelope.SourceId == destinationId)
+                {
+                    return;
+                }
+
+                if (!_router.ShouldRouteTo(e.Envelope, destinationId))
                 {
                     return;
                 }

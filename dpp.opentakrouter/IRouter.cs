@@ -8,6 +8,7 @@ namespace dpp.opentakrouter
     {
         public event EventHandler<RoutedEventArgs> RaiseRoutedEvent;
         public void Route(CotMessageEnvelope envelope);
+        public bool ShouldRouteTo(CotMessageEnvelope envelope, string destinationId);
         IEnumerable<Event> GetActiveEvents();
     }
 }
