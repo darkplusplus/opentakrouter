@@ -1,10 +1,6 @@
-﻿using dpp.cot;
-using NetCoreServer;
+﻿using NetCoreServer;
 using Serilog;
-using System;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace dpp.opentakrouter
 {
@@ -20,7 +16,7 @@ namespace dpp.opentakrouter
             Log.Information($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} state=connected");
             foreach (var evt in _router.GetActiveEvents())
             {
-                SendTextAsync(evt.ToXmlString());
+                SendTextAsync(UiEventMessage.Serialize(evt));
             }
         }
 
@@ -31,28 +27,7 @@ namespace dpp.opentakrouter
 
         public override void OnWsReceived(byte[] buffer, long offset, long size)
         {
-            try
-            {
-                var data = Encoding.UTF8.GetString(buffer);
-
-                foreach (Match match in Regex.Matches(data, @"<event.+?\/event>"))
-                {
-                    try
-                    {
-                        var evt = Event.Parse(match.Value);
-                        Log.Information($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} event=cot uid={evt.Uid} type={evt.Type}");
-                        _router.Route(CotMessageEnvelope.FromEvent(evt, $"server:ws:{Id}", CotTransportKind.WebSocketText));
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} type=unknown error=true forwarded=false message=\"{e.Message}\"");
-            }
+            Log.Debug($"server=ws endpoint={Socket.RemoteEndPoint} session={Id} state=ignored direction=inbound");
         }
 
         protected override void OnError(SocketError error)

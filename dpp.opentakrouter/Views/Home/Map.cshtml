@@ -27,16 +27,13 @@
     }
 
     function OnMessage (msg) {
-        var cot = $.parseXML(msg.data);
+        var evt = JSON.parse(msg.data);
 
-        var uid = $(cot).find("event").attr("uid");
-        var type = $(cot).find("event").attr("type");
-        var stale = new Date($(cot).find("event").attr("stale"));
-        var coord = [
-            $(cot).find("point").attr("lat"),
-            $(cot).find("point").attr("lon")
-        ];
-        var callsign = $(cot).find("contact").attr("callsign") || $(cot).find("event").attr("uid");
+        var uid = evt.uid;
+        var type = evt.type;
+        var stale = new Date(evt.stale);
+        var coord = [evt.lat, evt.lon];
+        var callsign = evt.callsign || evt.uid;
         var popup = `<b><span>${callsign}</span></b>&nbsp${type}`;
 
         console.log({

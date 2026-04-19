@@ -27,9 +27,7 @@ namespace dpp.opentakrouter
                 return;
             }
 
-            // TODO: can websockets be raw data (i.e. protobuf), or should they just be the xml event?
-            var xml = e.Event.ToXmlString();
-            _ = this.MulticastText(xml);
+            _ = this.MulticastText(UiEventMessage.Serialize(e.Envelope));
         }
 
         protected override void OnError(SocketError error)
