@@ -47,7 +47,7 @@ namespace dpp.opentakrouter
                     {
                         var sslContext = new SslContext(
                             SslProtocols.Tls12,
-                            LoadPkcs12Certificate(websocketConfig.Cert, websocketConfig.Passphrase));
+                            CertificateOptions.Load(websocketConfig.Cert, websocketConfig.Key, websocketConfig.Passphrase));
 
                         _wssServer = new TakWssServer(sslContext, IPAddress.Any, port, router);
                         _wssServer.Start();
@@ -196,7 +196,7 @@ namespace dpp.opentakrouter
                 {
                     var sslContext = new SslContext(
                         SslProtocols.Tls12,
-                        LoadPkcs12Certificate(link.Cert, link.Passphrase));
+                        CertificateOptions.Load(link.Cert, link.Key, link.Passphrase));
                     _tlsServer = new TakTlsServer(
                         sslContext,
                         IPAddress.Any,
@@ -243,13 +243,5 @@ namespace dpp.opentakrouter
             }
         }
 
-        private static X509Certificate2 LoadPkcs12Certificate(string path, string password)
-        {
-            return X509CertificateLoader.LoadPkcs12FromFile(
-                path,
-                password,
-                X509KeyStorageFlags.DefaultKeySet,
-                Pkcs12LoaderLimits.Defaults);
-        }
     }
 }

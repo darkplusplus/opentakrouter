@@ -1,0 +1,73 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/darkplusplus/opentakrouter
+  pullPolicy: IfNotPresent
+  tag: "2.0.0"
+
+service:
+  type: ClusterIP
+  apiPort: 8443
+  websocketPort: 5000
+  takTcpPort: 58087
+  takTlsPort: 8089
+
+certManager:
+  enabled: false
+  secretName: opentakrouter-tls
+  issuerRef:
+    name: ""
+    kind: ClusterIssuer
+    group: cert-manager.io
+  commonName: opentakrouter.local
+  dnsNames:
+    - opentakrouter.local
+  usages:
+    - server auth
+    - client auth
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: opentakrouter.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+storage:
+  provider: postgres
+  sqlite:
+    path: opentakrouter.db
+  postgres:
+    connectionString: "Host=postgres;Port=5432;Database=opentakrouter;Username=opentakrouter;Password=change-me"
+
+config:
+  persistMessages: true
+  api:
+    enabled: true
+    swagger: true
+    ssl: true
+  websockets:
+    enabled: true
+    ssl: false
+  links:
+    - name: atak-listener
+      enabled: true
+      role: listen
+      transport: tls
+      port: 8089
+      cert: /certs/tls.crt
+      key: /certs/tls.key
+      protocol: xml
+  routing:
+    inbound: []
+    outbound: []
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

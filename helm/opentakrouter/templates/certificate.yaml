@@ -1,0 +1,19 @@
+{{- if .Values.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "opentakrouter.fullname" . }}
+  labels:
+    {{- include "opentakrouter.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.certManager.secretName }}
+  commonName: {{ .Values.certManager.commonName | quote }}
+  dnsNames:
+    {{- toYaml .Values.certManager.dnsNames | nindent 4 }}
+  usages:
+    {{- toYaml .Values.certManager.usages | nindent 4 }}
+  issuerRef:
+    name: {{ .Values.certManager.issuerRef.name | quote }}
+    kind: {{ .Values.certManager.issuerRef.kind | quote }}
+    group: {{ .Values.certManager.issuerRef.group | quote }}
+{{- end }}

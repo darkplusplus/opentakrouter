@@ -1,0 +1,38 @@
+{
+  "server": {
+    "routing": {
+      "inbound": [
+        {
+          "name": "drop-test-feed",
+          "action": "deny",
+          "sourcePrefixes": [ "peer:test" ]
+        }
+      ],
+      "outbound": [
+        {
+          "name": "deny-adsb-west-default",
+          "action": "deny",
+          "sourcePrefixes": [ "peer:adsb" ],
+          "destinationPrefixes": [ "peer:regional-west" ]
+        },
+        {
+          "name": "allow-adsb-west-box",
+          "action": "allow",
+          "sourcePrefixes": [ "peer:adsb" ],
+          "destinationPrefixes": [ "peer:regional-west" ],
+          "minLat": 30.0,
+          "maxLat": 40.0,
+          "minLon": -120.0,
+          "maxLon": -110.0
+        },
+        {
+          "name": "watch-specific-track",
+          "action": "allow",
+          "uids": [ "watch-1" ],
+          "callsigns": [ "EAGLE01" ],
+          "maxAgeSeconds": 30
+        }
+      ]
+    }
+  }
+}

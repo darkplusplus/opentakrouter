@@ -2,7 +2,15 @@
     ViewData["Title"] = "Data Packages";
 }
 
-<section class="otr-card otr-table-wrap">
+<section class="otr-card otr-table-wrap" data-page="datapackages">
+    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;">
+        <div class="otr-qr-card" data-role="itak-qr">
+            <strong>iTAK Quick Connect</strong>
+            <div data-role="itak-qr-code" style="margin-top:0.75rem;"></div>
+            <p data-role="itak-qr-status" style="margin-top:0.75rem;">Generating QR payload...</p>
+        </div>
+        <a class="otr-button" href="/Marti/api/provisioning/serverpackage">Download Server Package</a>
+    </div>
     <table class="otr-table">
         <thead>
             <tr>

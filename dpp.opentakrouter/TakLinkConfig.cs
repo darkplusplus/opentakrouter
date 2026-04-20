@@ -9,6 +9,7 @@ namespace dpp.opentakrouter
         public string Address { get; set; } = "";
         public int Port { get; set; }
         public string Cert { get; set; } = "";
+        public string Key { get; set; } = "";
         public string Passphrase { get; set; } = "";
         public string Mode { get; set; } = "duplex";
         public string Protocol { get; set; } = "xml";

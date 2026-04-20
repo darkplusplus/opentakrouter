@@ -9,18 +9,46 @@
         // in extreme cases this may increase throughput slightly.
         "persist_messages": true,
 
+        "storage": {
+            // sqlite or postgres
+            "provider": "sqlite",
+            "sqlite": {
+                "path": "opentakrouter.db"
+            },
+            "postgres": {
+                "connectionString": ""
+            }
+        },
+
         // set the server name. this is used for api/federation functionality.
         // defaults to the hostname.
         //"name":  ""
 
+        // set the externally reachable hostname or ip. this is required for
+        // generated enrollment packages so EUDs receive a usable connect string.
+        //"public_endpoint": "tak.example.com",
+
+        "provisioning": {
+            "packageName": "OpenTAKRouter",
+            "serverDescription": "OpenTAKRouter",
+            "callsign": "CALLSIGN",
+            "team": "Blue",
+            "role": "Team Member",
+            "trustStoreCertificate": "/certs/ca.crt",
+            "trustStorePassword": "",
+            "clientCertificate": "/certs/client.p12",
+            "clientCertificatePassword": "",
+            "onReceiveDelete": true
+        },
+
         // the api interface configuration
         "api": {
-            "port": 8080,
+            "port": 8443,
             "swagger": true,
-
-            "ssl": false,
-            "cert": "server.p12",
-            "passphrase": "atakatak"
+            "ssl": true,
+            "cert": "/certs/tls.crt",
+            "key": "/certs/tls.key",
+            "passphrase": ""
         },
         "websockets": {
             "enabled": true,
@@ -28,19 +56,21 @@
 
             "ssl": false,
             "cert": "server.p12",
+            "key": "",
             "passphrase": "atakatak"
         },
 
         // the tak protocol configurations
         "tak": {
             "tcp": {
-                "enabled": true,
+                "enabled": false,
                 "port": 58087
             },
             "tls": {
-                "enabled": false,
-                "port": 58089,
-                "cert": "server.p12",
+                "enabled": true,
+                "port": 8089,
+                "cert": "/certs/tls.crt",
+                "key": "/certs/tls.key",
                 "passphrase": "atakatak"
             }
         },
@@ -51,8 +81,10 @@
             //     "name": "atak-listener",
             //     "enabled": true,
             //     "role": "listen",
-            //     "transport": "tcp",
-            //     "port": 58087,
+            //     "transport": "tls",
+            //     "port": 8089,
+            //     "cert": "/certs/tls.crt",
+            //     "key": "/certs/tls.key",
             //     "protocol": "xml"
             // },
             // {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,9 +7,11 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Linq;
 
 namespace dpp.opentakrouter
 {
@@ -16,11 +19,12 @@ namespace dpp.opentakrouter
     {
         static IHostBuilder Initialize(string[] args)
         {
+            var configFile = ResolveConfigFile(args);
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
-                .AddJsonFile("opentakrouter.json", optional: true)
+                .AddJsonFile(configFile, optional: false)
                 .Build();
 
             var dataDir = Path.GetFullPath(
@@ -63,10 +67,28 @@ namespace dpp.opentakrouter
                         rollingInterval: RollingInterval.Day))
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddScoped<IDatabaseContext, DatabaseContext>();
+                    var storage = context.Configuration.GetSection("server:storage").Get<StorageOptions>() ?? new StorageOptions();
+                    services.AddDbContext<OpenTakRouterDbContext>(options =>
+                    {
+                        if (string.Equals(storage.Provider, "postgres", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (string.IsNullOrWhiteSpace(storage.Postgres?.ConnectionString))
+                            {
+                                throw new InvalidOperationException("server:storage:postgres:connectionString is required when using the postgres storage provider");
+                            }
+
+                            options.UseNpgsql(storage.Postgres.ConnectionString);
+                        }
+                        else
+                        {
+                            var sqlitePath = DatabaseInitializationService.ResolveSqlitePath(context.Configuration, storage);
+                            options.UseSqlite($"Data Source={sqlitePath}");
+                        }
+                    });
                     services.AddScoped<IClientRepository, ClientRepository>();
                     services.AddScoped<IMessageRepository, MessageRepository>();
                     services.AddScoped<IDataPackageRepository, DataPackageRepository>();
+                    services.AddSingleton<ProvisioningPackageService>();
                     services.AddSingleton<IRouter, Router>();
                     services.AddHostedService<TakService>();
                 })
@@ -80,13 +102,11 @@ namespace dpp.opentakrouter
                         {
                             if (apiConfig.Ssl)
                             {
+                                var certificate = CertificateOptions.Load(apiConfig.Cert, apiConfig.Key, apiConfig.Passphrase);
                                 serverOptions.Listen(IPAddress.Any, apiConfig.Port ?? 8443, listenOptions =>
                                 {
                                     listenOptions.UseConnectionLogging();
-                                    listenOptions.UseHttps(
-                                        apiConfig.Cert,
-                                        apiConfig.Passphrase
-                                    );
+                                    listenOptions.UseHttps(certificate);
                                 });
                             }
                             else
@@ -115,11 +135,42 @@ namespace dpp.opentakrouter
             }
 
 
-            var hostBuilder = Initialize(args);
+            var host = Initialize(args).Build();
+            await DatabaseInitializationService.InitializeAsync(
+                host.Services,
+                host.Services.GetRequiredService<IConfiguration>());
+            await host.RunAsync();
+        }
 
-            await hostBuilder
-                .Build()
-                .RunAsync();
+        private static string ResolveConfigFile(string[] args)
+        {
+            for (var index = 0; index < args.Length; index++)
+            {
+                var arg = args[index];
+                if (string.Equals(arg, "--config", StringComparison.OrdinalIgnoreCase))
+                {
+                    if ((index + 1) >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]))
+                    {
+                        throw new InvalidOperationException("--config requires a file path");
+                    }
+
+                    return args[index + 1];
+                }
+
+                const string prefix = "--config=";
+                if (arg.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    var path = arg[prefix.Length..];
+                    if (string.IsNullOrWhiteSpace(path))
+                    {
+                        throw new InvalidOperationException("--config requires a file path");
+                    }
+
+                    return path;
+                }
+            }
+
+            return "opentakrouter.json";
         }
     }
 }

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opentakrouter.fullname" . }}
+  labels:
+    {{- include "opentakrouter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "opentakrouter.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "opentakrouter.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: opentakrouter
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: server__storage__postgres__connectionString
+              value: {{ .Values.storage.postgres.connectionString | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.apiPort }}
+            - name: websocket
+              containerPort: {{ .Values.service.websocketPort }}
+            - name: tak-tcp
+              containerPort: {{ .Values.service.takTcpPort }}
+            - name: tak-tls
+              containerPort: {{ .Values.service.takTlsPort }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/opentakrouter.json
+              subPath: opentakrouter.json
+            - name: tls
+              mountPath: /certs
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "opentakrouter.fullname" . }}-config
+        - name: tls
+          secret:
+            secretName: {{ .Values.certManager.secretName }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}

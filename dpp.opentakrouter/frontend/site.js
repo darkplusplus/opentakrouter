@@ -2,8 +2,10 @@ import "./site.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import ms from "milsymbol";
+import QRCode from "qrcode";
 
 const mapRoot = document.querySelector("[data-page='map']");
+const dataPackagesRoot = document.querySelector("[data-page='datapackages']");
 
 if (mapRoot) {
   const wsPort = mapRoot.dataset.wsPort;
@@ -201,5 +203,36 @@ if (mapRoot) {
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
+  }
+}
+
+if (dataPackagesRoot) {
+  const qrRoot = dataPackagesRoot.querySelector("[data-role='itak-qr-code']");
+  const status = dataPackagesRoot.querySelector("[data-role='itak-qr-status']");
+
+  hydrateItakQr();
+
+  async function hydrateItakQr() {
+    try {
+      const response = await fetch("/Marti/api/provisioning/itakqr", {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error(`qr failed: ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const svg = await QRCode.toString(payload.payload, {
+        type: "svg",
+        margin: 1,
+        width: 192,
+      });
+
+      qrRoot.innerHTML = svg;
+      status.textContent = payload.payload;
+    } catch (error) {
+      console.error(error);
+      status.textContent = "QR unavailable. Set server.public_endpoint to generate iTAK quick connect.";
+    }
   }
 }

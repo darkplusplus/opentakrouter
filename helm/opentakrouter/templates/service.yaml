@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opentakrouter.fullname" . }}
+  labels:
+    {{- include "opentakrouter.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ include "opentakrouter.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.apiPort }}
+      targetPort: http
+    - name: websocket
+      port: {{ .Values.service.websocketPort }}
+      targetPort: websocket
+    - name: tak-tcp
+      port: {{ .Values.service.takTcpPort }}
+      targetPort: tak-tcp
+    - name: tak-tls
+      port: {{ .Values.service.takTlsPort }}
+      targetPort: tak-tls

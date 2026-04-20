@@ -5,18 +5,57 @@ on:
     tags:
       - v*
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '10.0.x'
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v4
+
+    - name: Install frontend dependencies
+      run: npm install
+
+    - name: Build frontend bundle
+      run: npm run build:ui
+
+    - name: Compute release version
+      id: version
+      shell: bash
+      run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+    - name: Verify release metadata
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="${{ steps.version.outputs.value }}"
+        APP_VERSION=$(sed -n 's:.*<Version>\\(.*\\)</Version>.*:\\1:p' dpp.opentakrouter/dpp.opentakrouter.csproj | head -n1)
+        CHART_VERSION=$(sed -n 's/^version: //p' helm/opentakrouter/Chart.yaml | head -n1)
+        CHART_APP_VERSION=$(sed -n 's/^appVersion: \"\\(.*\\)\"/\\1/p' helm/opentakrouter/Chart.yaml | head -n1)
+        IMAGE_TAG=$(sed -n 's/^  tag: \"\\(.*\\)\"/\\1/p' helm/opentakrouter/values.yaml | head -n1)
+        test "$VERSION" = "$APP_VERSION"
+        test "$VERSION" = "$CHART_VERSION"
+        test "$VERSION" = "$CHART_APP_VERSION"
+        test "$VERSION" = "$IMAGE_TAG"
+
+    - name: Test
+      run: dotnet test opentakrouter.sln -m:1
 
     - name: Release
       run: scripts/release.sh
@@ -30,3 +69,43 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
+
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push container image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: dpp.opentakrouter/Dockerfile
+        push: true
+        tags: |
+          ghcr.io/darkplusplus/opentakrouter:${{ github.ref_name }}
+          ghcr.io/darkplusplus/opentakrouter:${{ steps.version.outputs.value }}
+          ghcr.io/darkplusplus/opentakrouter:latest
+
+    - name: Package Helm chart
+      shell: bash
+      run: |
+        mkdir -p dist
+        helm lint helm/opentakrouter
+        helm package helm/opentakrouter --destination dist
+
+    - name: Upload Helm chart to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/*.tgz
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
+
+    - name: Push Helm chart to GHCR OCI
+      shell: bash
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+        helm push dist/opentakrouter-${{ steps.version.outputs.value }}.tgz oci://ghcr.io/darkplusplus/charts

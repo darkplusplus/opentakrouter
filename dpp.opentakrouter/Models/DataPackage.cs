@@ -1,11 +1,9 @@
-﻿using SQLite;
-using System;
+﻿using System;
 
 namespace dpp.opentakrouter.Models
 {
     public class DataPackage
     {
-        [PrimaryKey, AutoIncrement]
         public int PrimaryKey { get; set; }
         public string UID { get; set; }
         public string Name { get; set; }

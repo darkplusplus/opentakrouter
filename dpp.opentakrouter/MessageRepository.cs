@@ -1,56 +1,59 @@
 ﻿using dpp.opentakrouter.Models;
-using SQLite;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dpp.opentakrouter
 {
     public class MessageRepository : IMessageRepository
     {
-        private readonly IDatabaseContext _context;
-        private readonly SQLiteConnection _db;
+        private readonly OpenTakRouterDbContext _db;
 
-        public MessageRepository(IDatabaseContext context)
+        public MessageRepository(OpenTakRouterDbContext context)
         {
-            _context = context;
-            _db = _context.Database;
-            _db.CreateTable<StoredMessage>();
-
+            _db = context;
             EvictExpired();
         }
 
         public int Add(StoredMessage msg)
         {
-            _db.BeginTransaction();
-            var r = _db.Insert(msg);
-            _db.Commit();
-
-            return r;
+            _db.Messages.Add(msg);
+            return _db.SaveChanges();
         }
 
         public int Delete(string q)
         {
             var m = Get(q);
-            return _db.Delete(m);
+            if (m == null)
+            {
+                return 0;
+            }
+
+            _db.Messages.Remove(m);
+            return _db.SaveChanges();
         }
 
         public StoredMessage Get(string UID)
         {
-            return _db.Table<StoredMessage>().Where(m => m.Uid == UID).FirstOrDefault();
+            return _db.Messages.FirstOrDefault(m => m.Uid == UID);
         }
 
         public IEnumerable<StoredMessage> Search(string query)
         {
-            return _db.Table<StoredMessage>().Where(m => m.Data.Contains(query));
+            var messages = _db.Messages.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                messages = messages.Where(m => m.Data.Contains(query));
+            }
+
+            return messages.AsNoTracking().ToList();
         }
 
         public int Update(StoredMessage msg)
         {
-            _db.BeginTransaction();
-            var r = _db.Update(msg);
-            _db.Commit();
-
-            return r;
+            _db.Messages.Update(msg);
+            return _db.SaveChanges();
         }
 
         public int Upsert(StoredMessage m)
@@ -69,12 +72,22 @@ namespace dpp.opentakrouter
 
         public int EvictExpired()
         {
-            return _db.Table<StoredMessage>().Where(m => m.Expiration < DateTime.Now).Delete();
+            var expired = _db.Messages.Where(m => m.Expiration < DateTime.UtcNow).ToList();
+            if (expired.Count == 0)
+            {
+                return 0;
+            }
+
+            _db.Messages.RemoveRange(expired);
+            return _db.SaveChanges();
         }
 
         public IEnumerable<StoredMessage> GetActive()
         {
-            return _db.Table<StoredMessage>().Where(m => m.Expiration >= DateTime.Now);
+            return _db.Messages
+                .Where(m => m.Expiration >= DateTime.UtcNow)
+                .AsNoTracking()
+                .ToList();
         }
     }
 }

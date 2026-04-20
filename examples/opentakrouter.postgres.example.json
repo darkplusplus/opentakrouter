@@ -1,0 +1,60 @@
+{
+  "AllowedHosts": "*",
+  "server": {
+    "persist_messages": true,
+    "public_endpoint": "tak.example.com",
+    "storage": {
+      "provider": "postgres",
+      "sqlite": {
+        "path": "opentakrouter.db"
+      },
+      "postgres": {
+        "connectionString": "Host=postgres;Port=5432;Database=opentakrouter;Username=opentakrouter;Password=change-me"
+      }
+    },
+    "provisioning": {
+      "packageName": "OpenTAKRouter",
+      "serverDescription": "OpenTAKRouter",
+      "callsign": "CALLSIGN",
+      "team": "Blue",
+      "role": "Team Member",
+      "trustStoreCertificate": "/certs/ca.crt",
+      "trustStorePassword": "",
+      "clientCertificate": "/certs/client.p12",
+      "clientCertificatePassword": "",
+      "onReceiveDelete": true
+    },
+    "api": {
+      "enabled": true,
+      "port": 8443,
+      "swagger": true,
+      "ssl": true,
+      "cert": "/certs/tls.crt",
+      "key": "/certs/tls.key",
+      "passphrase": ""
+    },
+    "websockets": {
+      "enabled": true,
+      "port": 5000,
+      "ssl": false,
+      "cert": "server.p12",
+      "passphrase": "change-me"
+    },
+    "links": [
+      {
+        "name": "atak-listener",
+        "enabled": true,
+        "role": "listen",
+        "transport": "tls",
+        "port": 8089,
+        "cert": "/certs/tls.crt",
+        "key": "/certs/tls.key",
+        "protocol": "xml"
+      }
+    ],
+    "routing": {
+      "inbound": [],
+      "outbound": []
+    }
+  }
+}

@@ -9,6 +9,9 @@ DIST_DIR="$SCRIPT_DIR/../dist"
 
 mkdir -p $DIST_DIR
 
+npm install
+npm run build:ui
+
 # linux
 dotnet publish dpp.opentakrouter -c Release -r linux-x64 --self-contained=true -p:PublishSingleFile=true 
 pushd ./dpp.opentakrouter/bin/Release/net10.0/linux-x64/publish/

@@ -14,9 +14,11 @@ DIST_DIR="$SCRIPT_DIR/../dist"
 mkdir -p $DIST_DIR
 
 dotnet clean
+npm install
+npm run build:ui
 
-# win10-x64
-ARCH=win10-x64
+# win-x64
+ARCH=win-x64
 dotnet publish dpp.opentakrouter -c Release -r $ARCH --self-contained=true -p:PublishSingleFile=true
 pushd ./dpp.opentakrouter/bin/Release/net10.0/$ARCH/publish/
 zip -r $DIST_DIR/opentakrouter-$VERSION-$ARCH.zip .

@@ -1,46 +1,60 @@
 ﻿using dpp.opentakrouter.Models;
-using SQLite;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace dpp.opentakrouter
 {
     public class ClientRepository : IClientRepository
     {
-        private readonly IDatabaseContext _context;
-        private readonly SQLiteConnection _db;
+        private readonly OpenTakRouterDbContext _db;
 
-        public ClientRepository(IDatabaseContext context)
+        public ClientRepository(OpenTakRouterDbContext context)
         {
-            _context = context;
-            _db = _context.Database;
-            _db.CreateTable<Client>();
+            _db = context;
         }
 
         public int Add(Client c)
         {
-            return _db.Insert(c);
+            _db.Clients.Add(c);
+            return _db.SaveChanges();
         }
 
         public int Delete(string q)
         {
             var c = Get(q);
-            return _db.Delete(c);
+            if (c == null)
+            {
+                return 0;
+            }
+
+            _db.Clients.Remove(c);
+            return _db.SaveChanges();
         }
 
         public Client Get(string callsign)
         {
-            return _db.Table<Client>().Where(c => c.Callsign == callsign).FirstOrDefault();
+            return _db.Clients.FirstOrDefault(c => c.Callsign == callsign);
         }
 
         public IEnumerable<Client> Search(string query = "")
         {
-            // TODO: clean up how client data is enumerated
-            return _db.Table<Client>().Where(c => c.Callsign == c.Callsign);
+            var clients = _db.Clients.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                clients = clients.Where(c => c.Callsign.Contains(query));
+            }
+
+            return clients
+                .OrderByDescending(c => c.LastSeen)
+                .AsNoTracking()
+                .ToList();
         }
 
         public int Update(Client c)
         {
-            return _db.Update(c);
+            _db.Clients.Update(c);
+            return _db.SaveChanges();
         }
 
         public int Upsert(Client c)

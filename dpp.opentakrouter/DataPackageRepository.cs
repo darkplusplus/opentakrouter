@@ -1,27 +1,26 @@
 ﻿using dpp.opentakrouter.Models;
 using Microsoft.AspNetCore.Http;
-using SQLite;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace dpp.opentakrouter
 {
     public class DataPackageRepository : IDataPackageRepository
     {
-        private readonly IDatabaseContext _context;
-        private readonly SQLiteConnection _db;
+        private readonly OpenTakRouterDbContext _db;
 
-        public DataPackageRepository(IDatabaseContext context)
+        public DataPackageRepository(OpenTakRouterDbContext context)
         {
-            _context = context;
-            _db = _context.Database;
-            _db.CreateTable<DataPackage>();
+            _db = context;
         }
 
         public int Add(DataPackage datapackage)
         {
-            return _db.Insert(datapackage);
+            _db.DataPackages.Add(datapackage);
+            return _db.SaveChanges();
         }
 
         public int Add(IFormFile file, string hash, string filename, string submissionUser = "Anonymous", string creatorUid = "Anonymous", string keywords = "missionpackage", string visibility = "private")
@@ -43,7 +42,7 @@ namespace dpp.opentakrouter
                 UID = filename,
                 Name = name,
                 Hash = hash,
-                SubmissionDateTime = DateTime.Now,
+                SubmissionDateTime = DateTime.UtcNow,
                 SubmissionUser = submissionUser,
                 CreatorUid = creatorUid,
                 Keywords = keywords,
@@ -58,22 +57,39 @@ namespace dpp.opentakrouter
 
         public int Delete(string hash)
         {
-            return _db.Table<DataPackage>().Where(dp => dp.Hash == hash).Delete();
+            var datapackage = Get(hash);
+            if (datapackage == null)
+            {
+                return 0;
+            }
+
+            _db.DataPackages.Remove(datapackage);
+            return _db.SaveChanges();
         }
 
         public DataPackage Get(string hash)
         {
-            return _db.Table<DataPackage>().Where(dp => dp.Hash == hash).First();
+            return _db.DataPackages.FirstOrDefault(dp => dp.Hash == hash);
         }
 
         public IEnumerable<DataPackage> Search(string keywords = "")
         {
-            return _db.Table<DataPackage>().Where(dp => dp.Keywords.Contains(keywords));
+            var packages = _db.DataPackages.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(keywords))
+            {
+                packages = packages.Where(dp => dp.Keywords.Contains(keywords));
+            }
+
+            return packages
+                .OrderByDescending(dp => dp.SubmissionDateTime)
+                .AsNoTracking()
+                .ToList();
         }
 
         public int Update(DataPackage dp)
         {
-            return _db.Update(dp);
+            _db.DataPackages.Update(dp);
+            return _db.SaveChanges();
         }
     }
 }

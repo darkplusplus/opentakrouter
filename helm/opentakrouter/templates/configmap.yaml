@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "opentakrouter.fullname" . }}-config
+  labels:
+    {{- include "opentakrouter.labels" . | nindent 4 }}
+data:
+  opentakrouter.json: |
+    {
+      "AllowedHosts": "*",
+      "server": {
+        "persist_messages": {{ .Values.config.persistMessages }},
+        "storage": {
+          "provider": {{ .Values.storage.provider | quote }},
+          "sqlite": {
+            "path": {{ .Values.storage.sqlite.path | quote }}
+          },
+          "postgres": {
+            "connectionString": ""
+          }
+        },
+        "api": {
+          "enabled": {{ .Values.config.api.enabled }},
+          "port": {{ .Values.service.apiPort }},
+          "swagger": {{ .Values.config.api.swagger }},
+          "ssl": {{ .Values.config.api.ssl }},
+          "cert": "/certs/tls.crt",
+          "key": "/certs/tls.key",
+          "passphrase": ""
+        },
+        "websockets": {
+          "enabled": {{ .Values.config.websockets.enabled }},
+          "port": {{ .Values.service.websocketPort }},
+          "ssl": {{ .Values.config.websockets.ssl }},
+          "cert": "/certs/tls.crt",
+          "key": "/certs/tls.key",
+          "passphrase": ""
+        },
+        "links": {{ toJson .Values.config.links }},
+        "routing": {{ toJson .Values.config.routing }}
+      }
+    }

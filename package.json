@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "milsymbol": "^3.0.4"
+    "milsymbol": "^3.0.4",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

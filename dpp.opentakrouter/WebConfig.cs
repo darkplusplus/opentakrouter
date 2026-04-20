@@ -7,6 +7,7 @@
         public bool Swagger { get; set; } = true;
         public bool Ssl { get; set; } = false;
         public string Cert { get; set; } = "";
+        public string Key { get; set; } = "";
         public string Passphrase { get; set; } = "";
     }
 }

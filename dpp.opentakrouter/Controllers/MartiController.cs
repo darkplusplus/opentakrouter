@@ -21,16 +21,18 @@ namespace dpp.opentakrouter.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDataPackageRepository _datapackages;
         private readonly IClientRepository _clients;
+        private readonly ProvisioningPackageService _provisioningPackages;
 
         private readonly string _endpoint = "localhost";
         private readonly int _port = 8080;
 
-        public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages, IClientRepository clients)
+        public MartiController(ILogger<MartiController> logger, IConfiguration configuration, IDataPackageRepository datapackages, IClientRepository clients, ProvisioningPackageService provisioningPackages)
         {
             _logger = logger;
             _configuration = configuration;
             _datapackages = datapackages;
             _clients = clients;
+            _provisioningPackages = provisioningPackages;
 
             _endpoint = _configuration.GetValue("server:public_endpoint", Dns.GetHostName());
             _port = _configuration.GetValue("server:api:port", 8080);
@@ -142,6 +144,46 @@ namespace dpp.opentakrouter.Controllers
             catch
             {
                 return NotFound();
+            }
+        }
+
+        [Route("/Marti/api/provisioning/serverpackage")]
+        [HttpGet]
+        public IActionResult GetProvisioningDatapackage()
+        {
+            try
+            {
+                var package = _provisioningPackages.Generate();
+
+                return new FileContentResult(package.Content, "application/zip")
+                {
+                    FileDownloadName = package.FileName
+                };
+            }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogWarning(e, "Provisioning package generation is not available.");
+                return BadRequest(e.Message);
+            }
+        }
+
+        [Route("/Marti/api/provisioning/itakqr")]
+        [HttpGet]
+        public IActionResult GetItakQrPayload()
+        {
+            try
+            {
+                var payload = _provisioningPackages.GetItakQrPayload();
+                return Ok(new Dictionary<string, object>
+                {
+                    { "payload", payload },
+                    { "format", "description,host,port,protocol" }
+                });
+            }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogWarning(e, "iTAK QR generation is not available.");
+                return BadRequest(e.Message);
             }
         }
 
