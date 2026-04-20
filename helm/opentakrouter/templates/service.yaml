@@ -10,15 +10,25 @@ spec:
     app.kubernetes.io/name: {{ include "opentakrouter.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
+    {{- if .Values.config.api.enabled }}
     - name: http
       port: {{ .Values.service.apiPort }}
       targetPort: http
+    {{- end }}
+    {{- if .Values.config.websockets.enabled }}
     - name: websocket
       port: {{ .Values.service.websocketPort }}
       targetPort: websocket
+    {{- end }}
+    {{- range .Values.config.links }}
+    {{- if and .enabled (eq .role "listen") (eq .transport "tcp") }}
     - name: tak-tcp
-      port: {{ .Values.service.takTcpPort }}
+      port: {{ .port }}
       targetPort: tak-tcp
+    {{- end }}
+    {{- if and .enabled (eq .role "listen") (eq .transport "tls") }}
     - name: tak-tls
-      port: {{ .Values.service.takTlsPort }}
+      port: {{ .port }}
       targetPort: tak-tls
+    {{- end }}
+    {{- end }}

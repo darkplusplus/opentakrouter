@@ -19,25 +19,42 @@ spec:
         - name: opentakrouter
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if eq .Values.storage.provider "postgres" }}
           env:
             - name: server__storage__postgres__connectionString
               value: {{ .Values.storage.postgres.connectionString | quote }}
+          {{- end }}
           ports:
+            {{- if .Values.config.api.enabled }}
             - name: http
               containerPort: {{ .Values.service.apiPort }}
+            {{- end }}
+            {{- if .Values.config.websockets.enabled }}
             - name: websocket
               containerPort: {{ .Values.service.websocketPort }}
+            {{- end }}
+            {{- range .Values.config.links }}
+            {{- if and .enabled (eq .role "listen") (eq .transport "tcp") }}
             - name: tak-tcp
-              containerPort: {{ .Values.service.takTcpPort }}
+              containerPort: {{ .port }}
+            {{- end }}
+            {{- if and .enabled (eq .role "listen") (eq .transport "tls") }}
             - name: tak-tls
-              containerPort: {{ .Values.service.takTlsPort }}
+              containerPort: {{ .port }}
+            {{- end }}
+            {{- end }}
           volumeMounts:
             - name: config
               mountPath: /app/opentakrouter.json
               subPath: opentakrouter.json
             - name: tls
-              mountPath: /certs
+              mountPath: {{ .Values.certificates.mountPath }}
               readOnly: true
+            {{- if .Values.provisioning.enabled }}
+            - name: provisioning
+              mountPath: {{ .Values.provisioning.mountPath }}
+              readOnly: true
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -47,6 +64,11 @@ spec:
         - name: tls
           secret:
             secretName: {{ .Values.certManager.secretName }}
+        {{- if .Values.provisioning.enabled }}
+        - name: provisioning
+          secret:
+            secretName: {{ .Values.provisioning.secretName }}
+        {{- end }}
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       affinity:

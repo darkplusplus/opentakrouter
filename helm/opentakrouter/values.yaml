@@ -12,6 +12,22 @@ service:
   takTcpPort: 58087
   takTlsPort: 8089
 
+certificates:
+  mountPath: /certs
+  serverCertFile: tls.crt
+  serverKeyFile: tls.key
+
+provisioning:
+  enabled: false
+  packageName: OpenTAKRouter
+  serverDescription: OpenTAKRouter
+  secretName: opentakrouter-provisioning
+  mountPath: /provisioning
+  trustStoreFile: ca.crt
+  trustStorePassword: ""
+  clientCertificateFile: client.p12
+  clientCertificatePassword: ""
+
 certManager:
   enabled: false
   secretName: opentakrouter-tls
@@ -45,6 +61,7 @@ storage:
     connectionString: "Host=postgres;Port=5432;Database=opentakrouter;Username=opentakrouter;Password=change-me"
 
 config:
+  publicEndpoint: opentakrouter.local
   persistMessages: true
   api:
     enabled: true

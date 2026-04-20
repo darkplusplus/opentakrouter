@@ -10,30 +10,40 @@ data:
       "AllowedHosts": "*",
       "server": {
         "persist_messages": {{ .Values.config.persistMessages }},
+        "public_endpoint": {{ .Values.config.publicEndpoint | quote }},
         "storage": {
           "provider": {{ .Values.storage.provider | quote }},
           "sqlite": {
             "path": {{ .Values.storage.sqlite.path | quote }}
           },
           "postgres": {
-            "connectionString": ""
+            "connectionString": {{ .Values.storage.postgres.connectionString | quote }}
           }
+        },
+        "provisioning": {
+          "packageName": {{ .Values.provisioning.packageName | quote }},
+          "serverDescription": {{ .Values.provisioning.serverDescription | quote }},
+          "trustStoreCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.trustStoreFile | quote }},
+          "trustStorePassword": {{ .Values.provisioning.trustStorePassword | quote }},
+          "clientCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.clientCertificateFile | quote }},
+          "clientCertificatePassword": {{ .Values.provisioning.clientCertificatePassword | quote }},
+          "onReceiveDelete": true
         },
         "api": {
           "enabled": {{ .Values.config.api.enabled }},
           "port": {{ .Values.service.apiPort }},
           "swagger": {{ .Values.config.api.swagger }},
           "ssl": {{ .Values.config.api.ssl }},
-          "cert": "/certs/tls.crt",
-          "key": "/certs/tls.key",
+          "cert": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverCertFile | quote }},
+          "key": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverKeyFile | quote }},
           "passphrase": ""
         },
         "websockets": {
           "enabled": {{ .Values.config.websockets.enabled }},
           "port": {{ .Values.service.websocketPort }},
           "ssl": {{ .Values.config.websockets.ssl }},
-          "cert": "/certs/tls.crt",
-          "key": "/certs/tls.key",
+          "cert": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverCertFile | quote }},
+          "key": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverKeyFile | quote }},
           "passphrase": ""
         },
         "links": {{ toJson .Values.config.links }},
