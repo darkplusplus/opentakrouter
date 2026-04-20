@@ -11,6 +11,8 @@ namespace dpp.opentakrouter
         public string TrustStorePassword { get; set; } = "";
         public string ClientCertificate { get; set; } = "";
         public string ClientCertificatePassword { get; set; } = "";
+        public string PublicApiScheme { get; set; } = "";
+        public int PublicApiPort { get; set; }
         public bool OnReceiveDelete { get; set; } = true;
     }
 }

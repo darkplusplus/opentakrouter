@@ -91,6 +91,71 @@ namespace dpp.opentakrouter.Tests
         }
 
         [Fact]
+        public void GeneratePrefersProvisioningPublicApiOverrides()
+        {
+            using var certificateFixture = TestCertificateFixture.Create();
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["server:public_endpoint"] = "tak.example.com",
+                    ["server:api:port"] = "8443",
+                    ["server:api:ssl"] = "true",
+                    ["server:api:cert"] = certificateFixture.CertificatePath,
+                    ["server:api:passphrase"] = certificateFixture.Passphrase,
+                    ["server:provisioning:publicApiScheme"] = "https",
+                    ["server:provisioning:publicApiPort"] = "443",
+                    ["server:provisioning:trustStoreCertificate"] = certificateFixture.TrustCertificatePath,
+                    ["server:provisioning:clientCertificate"] = certificateFixture.ClientCertificatePath,
+                    ["server:links:0:enabled"] = "true",
+                    ["server:links:0:role"] = "listen",
+                    ["server:links:0:transport"] = "tls",
+                    ["server:links:0:port"] = "8089",
+                })
+                .Build();
+
+            var package = new ProvisioningPackageService(configuration).Generate();
+
+            Assert.Equal("https://tak.example.com/Marti/api/provisioning/serverpackage", package.DownloadUrl);
+        }
+
+        [Fact]
+        public void GeneratePreservesPkcs12TrustChainWhenProvided()
+        {
+            using var certificateFixture = TestCertificateFixture.CreateWithPkcs12TrustBundle();
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["server:public_endpoint"] = "tak.example.com",
+                    ["server:api:cert"] = certificateFixture.CertificatePath,
+                    ["server:api:passphrase"] = certificateFixture.Passphrase,
+                    ["server:provisioning:trustStoreCertificate"] = certificateFixture.TrustCertificatePath,
+                    ["server:provisioning:trustStorePassword"] = "trust-pass",
+                    ["server:provisioning:clientCertificate"] = certificateFixture.ClientCertificatePath,
+                    ["server:links:0:enabled"] = "true",
+                    ["server:links:0:role"] = "listen",
+                    ["server:links:0:transport"] = "tls",
+                    ["server:links:0:port"] = "8089",
+                })
+                .Build();
+
+            var package = new ProvisioningPackageService(configuration).Generate();
+
+            using var stream = new MemoryStream(package.Content);
+            using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+            using var trustStream = archive.GetEntry("certs/caCert.p12")?.Open();
+            using var trustMemory = new MemoryStream();
+            trustStream?.CopyTo(trustMemory);
+
+            var certificates = X509CertificateLoader.LoadPkcs12Collection(
+                trustMemory.ToArray(),
+                "trust-pass",
+                X509KeyStorageFlags.DefaultKeySet,
+                Pkcs12LoaderLimits.Defaults);
+
+            Assert.Equal(2, certificates.Count);
+        }
+
+        [Fact]
         public void GenerateRequiresPublicEndpoint()
         {
             using var certificateFixture = TestCertificateFixture.Create();
@@ -219,6 +284,78 @@ namespace dpp.opentakrouter.Tests
                 var clientPath = Path.Combine(Path.GetTempPath(), $"otr-client-{Guid.NewGuid():N}.p12");
                 File.WriteAllBytes(path, certificate.Export(X509ContentType.Pkcs12, password));
                 File.WriteAllBytes(trustPath, caCertificate.Export(X509ContentType.Cert));
+                File.WriteAllBytes(clientPath, clientCertificate.Export(X509ContentType.Pkcs12, password));
+                return new TestCertificateFixture(path, trustPath, clientPath, password);
+            }
+
+            public static TestCertificateFixture CreateWithPkcs12TrustBundle()
+            {
+                using var rsa = RSA.Create(2048);
+                using var rootKey = RSA.Create(2048);
+                var rootRequest = new CertificateRequest(
+                    "CN=OpenTAKRouter Test Root",
+                    rootKey,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+                rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 1, true));
+                rootRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(rootRequest.PublicKey, false));
+                using var rootCertificate = rootRequest.CreateSelfSigned(
+                    DateTimeOffset.UtcNow.AddDays(-1),
+                    DateTimeOffset.UtcNow.AddDays(365));
+
+                using var intermediateKey = RSA.Create(2048);
+                var intermediateRequest = new CertificateRequest(
+                    "CN=OpenTAKRouter Test Intermediate",
+                    intermediateKey,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+                intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+                using var intermediateCertificateWithoutKey = intermediateRequest.Create(
+                    rootCertificate,
+                    DateTimeOffset.UtcNow.AddDays(-1),
+                    DateTimeOffset.UtcNow.AddDays(180),
+                    Guid.NewGuid().ToByteArray());
+                using var intermediateCertificate = intermediateCertificateWithoutKey.CopyWithPrivateKey(intermediateKey);
+
+                var request = new CertificateRequest(
+                    "CN=tak.example.com",
+                    rsa,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                using var certificate = request.Create(
+                    intermediateCertificate,
+                    DateTimeOffset.UtcNow.AddDays(-1),
+                    DateTimeOffset.UtcNow.AddDays(30),
+                    Guid.NewGuid().ToByteArray());
+
+                using var clientKey = RSA.Create(2048);
+                var clientRequest = new CertificateRequest(
+                    "CN=client.tak.example.com",
+                    clientKey,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+                clientRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+                clientRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(clientRequest.PublicKey, false));
+                using var clientCertificate = clientRequest.Create(
+                    intermediateCertificate,
+                    DateTimeOffset.UtcNow.AddDays(-1),
+                    DateTimeOffset.UtcNow.AddDays(30),
+                    Guid.NewGuid().ToByteArray());
+
+                var password = "change-me";
+                var path = Path.Combine(Path.GetTempPath(), $"otr-provisioning-{Guid.NewGuid():N}.p12");
+                var trustPath = Path.Combine(Path.GetTempPath(), $"otr-ca-bundle-{Guid.NewGuid():N}.p12");
+                var clientPath = Path.Combine(Path.GetTempPath(), $"otr-client-{Guid.NewGuid():N}.p12");
+                var trustBundle = new X509Certificate2Collection();
+                trustBundle.Add(intermediateCertificate);
+                trustBundle.Add(rootCertificate);
+                File.WriteAllBytes(path, certificate.Export(X509ContentType.Pkcs12, password));
+                File.WriteAllBytes(
+                    trustPath,
+                    trustBundle.Export(X509ContentType.Pkcs12, "trust-pass"));
                 File.WriteAllBytes(clientPath, clientCertificate.Export(X509ContentType.Pkcs12, password));
                 return new TestCertificateFixture(path, trustPath, clientPath, password);
             }

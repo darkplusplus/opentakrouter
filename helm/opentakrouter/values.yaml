@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/darkplusplus/opentakrouter
   pullPolicy: IfNotPresent
-  tag: "2.0.0"
+  tag: "2.0.1"
 
 service:
   type: ClusterIP
@@ -12,25 +12,49 @@ service:
   takTcpPort: 58087
   takTlsPort: 8089
 
-certificates:
+# Public server identity used by the API, WebSocket TLS, and TAK TLS listener.
+# With cert-manager enabled, this is typically the public CA-issued certificate.
+tls:
+  secretName: opentakrouter-tls
   mountPath: /certs
-  serverCertFile: tls.crt
-  serverKeyFile: tls.key
+  certFile: tls.crt
+  keyFile: tls.key
+  passphraseSecretName: ""
+  passphraseSecretKey: ""
 
 provisioning:
   enabled: false
   packageName: OpenTAKRouter
   serverDescription: OpenTAKRouter
+  # Optional externally reachable API URL override for package downloads.
+  publicApiScheme: ""
+  publicApiPort: 0
+  # Legacy/shared secret name fallback when both enrollment artifacts live in one secret.
   secretName: opentakrouter-provisioning
   mountPath: /provisioning
-  trustStoreFile: ca.crt
-  trustStorePassword: ""
-  clientCertificateFile: client.p12
-  clientCertificatePassword: ""
+  trustStorePasswordSecretName: ""
+  trustStorePasswordSecretKey: ""
+  clientCertificatePasswordSecretName: ""
+  clientCertificatePasswordSecretKey: ""
+  # Trust bundle imported by the client package. This is typically your CA cert,
+  # not the same thing as the server's private keypair.
+  trustStore:
+    secretName: ""
+    secretKey: ca.crt
+    fileName: ca.crt
+    create: false
+    data: ""
+  # Client identity bundle imported onto the EUD for soft-cert onboarding.
+  clientCertificate:
+    secretName: ""
+    secretKey: client.p12
+    fileName: client.p12
+    create: false
+    data: ""
 
 certManager:
   enabled: false
-  secretName: opentakrouter-tls
+  secretName: ""
   issuerRef:
     name: ""
     kind: ClusterIssuer
@@ -45,6 +69,10 @@ certManager:
 ingress:
   enabled: false
   className: ""
+  # Optional explicit public scheme/port for generated provisioning URLs.
+  # When omitted, the chart defaults to 443 for TLS ingress and 80 otherwise.
+  publicApiScheme: ""
+  publicApiPort: 0
   annotations: {}
   hosts:
     - host: opentakrouter.local

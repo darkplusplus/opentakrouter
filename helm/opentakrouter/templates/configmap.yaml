@@ -23,10 +23,12 @@ data:
         "provisioning": {
           "packageName": {{ .Values.provisioning.packageName | quote }},
           "serverDescription": {{ .Values.provisioning.serverDescription | quote }},
-          "trustStoreCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.trustStoreFile | quote }},
-          "trustStorePassword": {{ .Values.provisioning.trustStorePassword | quote }},
-          "clientCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.clientCertificateFile | quote }},
-          "clientCertificatePassword": {{ .Values.provisioning.clientCertificatePassword | quote }},
+          "publicApiScheme": {{ include "opentakrouter.publicApiScheme" . | quote }},
+          "publicApiPort": {{ include "opentakrouter.publicApiPort" . }},
+          "trustStoreCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.trustStore.fileName | quote }},
+          "trustStorePassword": "",
+          "clientCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.clientCertificate.fileName | quote }},
+          "clientCertificatePassword": "",
           "onReceiveDelete": true
         },
         "api": {
@@ -34,16 +36,16 @@ data:
           "port": {{ .Values.service.apiPort }},
           "swagger": {{ .Values.config.api.swagger }},
           "ssl": {{ .Values.config.api.ssl }},
-          "cert": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverCertFile | quote }},
-          "key": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverKeyFile | quote }},
+          "cert": {{ printf "%s/%s" .Values.tls.mountPath .Values.tls.certFile | quote }},
+          "key": {{ printf "%s/%s" .Values.tls.mountPath .Values.tls.keyFile | quote }},
           "passphrase": ""
         },
         "websockets": {
           "enabled": {{ .Values.config.websockets.enabled }},
           "port": {{ .Values.service.websocketPort }},
           "ssl": {{ .Values.config.websockets.ssl }},
-          "cert": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverCertFile | quote }},
-          "key": {{ printf "%s/%s" .Values.certificates.mountPath .Values.certificates.serverKeyFile | quote }},
+          "cert": {{ printf "%s/%s" .Values.tls.mountPath .Values.tls.certFile | quote }},
+          "key": {{ printf "%s/%s" .Values.tls.mountPath .Values.tls.keyFile | quote }},
           "passphrase": ""
         },
         "links": {{ toJson .Values.config.links }},

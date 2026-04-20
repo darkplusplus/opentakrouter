@@ -19,11 +19,37 @@ spec:
         - name: opentakrouter
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if eq .Values.storage.provider "postgres" }}
           env:
+            {{- if eq .Values.storage.provider "postgres" }}
             - name: server__storage__postgres__connectionString
               value: {{ .Values.storage.postgres.connectionString | quote }}
-          {{- end }}
+            {{- end }}
+            {{- if and .Values.tls.passphraseSecretName .Values.tls.passphraseSecretKey }}
+            - name: server__api__passphrase
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tls.passphraseSecretName }}
+                  key: {{ .Values.tls.passphraseSecretKey }}
+            - name: server__websockets__passphrase
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tls.passphraseSecretName }}
+                  key: {{ .Values.tls.passphraseSecretKey }}
+            {{- end }}
+            {{- if and .Values.provisioning.trustStorePasswordSecretName .Values.provisioning.trustStorePasswordSecretKey }}
+            - name: server__provisioning__trustStorePassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioning.trustStorePasswordSecretName }}
+                  key: {{ .Values.provisioning.trustStorePasswordSecretKey }}
+            {{- end }}
+            {{- if and .Values.provisioning.clientCertificatePasswordSecretName .Values.provisioning.clientCertificatePasswordSecretKey }}
+            - name: server__provisioning__clientCertificatePassword
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioning.clientCertificatePasswordSecretName }}
+                  key: {{ .Values.provisioning.clientCertificatePasswordSecretKey }}
+            {{- end }}
           ports:
             {{- if .Values.config.api.enabled }}
             - name: http
@@ -48,7 +74,7 @@ spec:
               mountPath: /app/opentakrouter.json
               subPath: opentakrouter.json
             - name: tls
-              mountPath: {{ .Values.certificates.mountPath }}
+              mountPath: {{ .Values.tls.mountPath }}
               readOnly: true
             {{- if .Values.provisioning.enabled }}
             - name: provisioning
@@ -63,11 +89,21 @@ spec:
             name: {{ include "opentakrouter.fullname" . }}-config
         - name: tls
           secret:
-            secretName: {{ .Values.certManager.secretName }}
+            secretName: {{ include "opentakrouter.tlsSecretName" . }}
         {{- if .Values.provisioning.enabled }}
         - name: provisioning
-          secret:
-            secretName: {{ .Values.provisioning.secretName }}
+          projected:
+            sources:
+              - secret:
+                  name: {{ include "opentakrouter.provisioningTrustSecretName" . }}
+                  items:
+                    - key: {{ .Values.provisioning.trustStore.secretKey }}
+                      path: {{ .Values.provisioning.trustStore.fileName }}
+              - secret:
+                  name: {{ include "opentakrouter.provisioningClientSecretName" . }}
+                  items:
+                    - key: {{ .Values.provisioning.clientCertificate.secretKey }}
+                      path: {{ .Values.provisioning.clientCertificate.fileName }}
         {{- end }}
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}

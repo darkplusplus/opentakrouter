@@ -34,6 +34,11 @@
             "callsign": "CALLSIGN",
             "team": "Blue",
             "role": "Team Member",
+            // optional public URL override for provisioning package downloads.
+            // useful when the API is published through ingress on 443 while the
+            // internal listener still runs on 8443.
+            "publicApiScheme": "https",
+            "publicApiPort": 443,
             "trustStoreCertificate": "/certs/ca.crt",
             "trustStorePassword": "",
             "clientCertificate": "/certs/client.p12",

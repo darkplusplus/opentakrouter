@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "opentakrouter.labels" . | nindent 4 }}
 spec:
-  secretName: {{ .Values.certManager.secretName }}
+  secretName: {{ include "opentakrouter.tlsSecretName" . }}
   commonName: {{ .Values.certManager.commonName | quote }}
   dnsNames:
     {{- toYaml .Values.certManager.dnsNames | nindent 4 }}

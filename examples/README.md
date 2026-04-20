@@ -1,5 +1,9 @@
 # Example Config Notes
 
+For end-to-end key generation, PKCS#12 creation, and Kubernetes secret publishing commands, see:
+
+- [docs/certificate-runbook.md](/Users/gbuehler/src/github.com/darkplusplus/opentakrouter/docs/certificate-runbook.md)
+
 The example configs in this directory assume four distinct certificate artifacts.
 
 ## Required Files

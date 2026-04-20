@@ -27,7 +27,6 @@ namespace dpp.opentakrouter
                 throw new InvalidOperationException("server:public_endpoint must be set to generate a provisioning package.");
             }
 
-            var apiPort = _configuration.GetValue("server:api:port", 8443);
             var takPort = ResolveTakTlsPort();
             var options = _configuration.GetSection("server:provisioning").Get<ProvisioningOptions>() ?? new ProvisioningOptions();
             var trustStore = LoadTrustStore(options);
@@ -51,7 +50,7 @@ namespace dpp.opentakrouter
                 fileName,
                 packageBaseName,
                 hash,
-                $"https://{endpoint}:{apiPort}/Marti/api/provisioning/serverpackage",
+                BuildProvisioningDownloadUrl(endpoint, options),
                 packageBytes);
         }
 
@@ -115,12 +114,12 @@ namespace dpp.opentakrouter
                     return File.ReadAllBytes(options.TrustStoreCertificate);
                 }
 
-                var trustCertificate = X509CertificateLoader.LoadCertificateFromFile(options.TrustStoreCertificate);
-                return ExportTrustStore(trustCertificate, options.TrustStorePassword);
+                var trustCertificates = LoadTrustCertificates(options.TrustStoreCertificate);
+                return ExportTrustStore(trustCertificates, options.TrustStorePassword);
             }
 
             var serverCertificate = LoadServerCertificate();
-            return ExportTrustStore(serverCertificate, options.TrustStorePassword);
+            return ExportTrustStore(new X509Certificate2Collection(serverCertificate), options.TrustStorePassword);
         }
 
         private static byte[] LoadClientCertificate(ProvisioningOptions options)
@@ -138,10 +137,63 @@ namespace dpp.opentakrouter
             return File.ReadAllBytes(options.ClientCertificate);
         }
 
-        private static byte[] ExportTrustStore(X509Certificate2 certificate, string password)
+        private string BuildProvisioningDownloadUrl(string endpoint, ProvisioningOptions options)
         {
-            var publicCertificate = X509CertificateLoader.LoadCertificate(certificate.Export(X509ContentType.Cert));
-            return publicCertificate.Export(X509ContentType.Pkcs12, password);
+            var scheme = ResolvePublicApiScheme(options);
+            var port = ResolvePublicApiPort(options, scheme);
+
+            if ((string.Equals(scheme, "https", StringComparison.OrdinalIgnoreCase) && port == 443) ||
+                (string.Equals(scheme, "http", StringComparison.OrdinalIgnoreCase) && port == 80))
+            {
+                return $"{scheme}://{endpoint}/Marti/api/provisioning/serverpackage";
+            }
+
+            return $"{scheme}://{endpoint}:{port}/Marti/api/provisioning/serverpackage";
+        }
+
+        private string ResolvePublicApiScheme(ProvisioningOptions options)
+        {
+            if (!string.IsNullOrWhiteSpace(options.PublicApiScheme))
+            {
+                return options.PublicApiScheme.Trim().ToLowerInvariant();
+            }
+
+            return _configuration.GetValue("server:api:ssl", true) ? "https" : "http";
+        }
+
+        private int ResolvePublicApiPort(ProvisioningOptions options, string scheme)
+        {
+            if (options.PublicApiPort > 0)
+            {
+                return options.PublicApiPort;
+            }
+
+            var defaultPort = string.Equals(scheme, "http", StringComparison.OrdinalIgnoreCase) ? 8080 : 8443;
+            return _configuration.GetValue("server:api:port", defaultPort);
+        }
+
+        private static X509Certificate2Collection LoadTrustCertificates(string path)
+        {
+            var certificates = new X509Certificate2Collection();
+            certificates.ImportFromPemFile(path);
+
+            if (certificates.Count > 0)
+            {
+                return certificates;
+            }
+
+            certificates.Add(X509CertificateLoader.LoadCertificateFromFile(path));
+            return certificates;
+        }
+
+        private static byte[] ExportTrustStore(X509Certificate2Collection certificates, string password)
+        {
+            if (certificates.Count == 0)
+            {
+                throw new InvalidOperationException("At least one trust certificate is required to generate a provisioning package.");
+            }
+
+            return certificates.Export(X509ContentType.Pkcs12, password);
         }
 
         private static byte[] BuildZip(string manifestXml, string atakConfigPrefXml, string itakConfigPrefXml, byte[] trustStore, byte[] clientCertificate)
