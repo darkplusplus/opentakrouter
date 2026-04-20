@@ -64,11 +64,72 @@ Example configs live under `examples/`:
 - `examples/opentakrouter.links.example.json`
 - `examples/opentakrouter.postgres.example.json`
 - `examples/opentakrouter.routing.example.json`
+- `examples/opentakrouter.json`
+- `examples/README.md`
 
 Use them as starting points for:
 - the preferred `server.links` TAK transport/federation model
 - `postgres`-backed container deployments
 - inbound/outbound routing policy definitions
+- local laptop testing with generated cert material
+
+## TLS And Key Material
+
+There are two distinct certificate roles in `opentakrouter`:
+
+1. Server identity for the router itself
+2. Provisioning material for EUD onboarding packages
+
+### Server identity
+
+The HTTPS API and the TAK TLS listener both need a server certificate and private key:
+
+- `server.api.cert`
+- `server.api.key`
+- `server.links[*].cert`
+- `server.links[*].key`
+
+In the common case, the API and the TAK TLS listener can reuse the same server certificate and key pair.
+
+That server certificate must:
+- chain to a CA your clients trust
+- include the configured `server.public_endpoint` in the certificate SAN
+- match the hostname or IP that EUDs actually use in the generated connect string
+
+For example, if `server.public_endpoint` is `tak.example.com`, the server certificate should include `DNS:tak.example.com`.
+
+### Provisioning package material
+
+The generated server package uses separate provisioning inputs:
+
+- `server.provisioning.trustStoreCertificate`
+- `server.provisioning.trustStorePassword`
+- `server.provisioning.clientCertificate`
+- `server.provisioning.clientCertificatePassword`
+
+These are not the same thing as the server key pair:
+
+- `trustStoreCertificate` should be the CA certificate or CA PKCS#12 that clients should trust
+- `clientCertificate` should be the PKCS#12 client identity bundle to import onto the EUD
+
+Recommended shape:
+
+- server cert/key:
+  - leaf server certificate signed by your CA
+- trust store:
+  - CA certificate exported as `.crt`, `.p12`, or `.pfx`
+- client certificate:
+  - client identity exported as `.p12`
+
+For local testing, a simple private CA works well:
+
+- create a local CA
+- sign the OTR server certificate with that CA
+- sign the EUD client certificate with that CA
+- point `trustStoreCertificate` at the CA cert
+- point `clientCertificate` at the client `.p12`
+
+`examples/README.md` includes a concrete mapping of config fields to the files you need.
 
 ## Storage
 
