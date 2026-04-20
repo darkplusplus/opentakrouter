@@ -45,10 +45,10 @@ jobs:
       run: |
         set -euo pipefail
         VERSION="${{ steps.version.outputs.value }}"
-        APP_VERSION=$(sed -n 's:.*<Version>\\(.*\\)</Version>.*:\\1:p' dpp.opentakrouter/dpp.opentakrouter.csproj | head -n1)
+        APP_VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' dpp.opentakrouter/dpp.opentakrouter.csproj | head -n1)
         CHART_VERSION=$(sed -n 's/^version: //p' helm/opentakrouter/Chart.yaml | head -n1)
-        CHART_APP_VERSION=$(sed -n 's/^appVersion: \"\\(.*\\)\"/\\1/p' helm/opentakrouter/Chart.yaml | head -n1)
-        IMAGE_TAG=$(sed -n 's/^  tag: \"\\(.*\\)\"/\\1/p' helm/opentakrouter/values.yaml | head -n1)
+        CHART_APP_VERSION=$(sed -n 's/^appVersion: "\(.*\)"/\1/p' helm/opentakrouter/Chart.yaml | head -n1)
+        IMAGE_TAG=$(sed -n 's/^  tag: "\(.*\)"/\1/p' helm/opentakrouter/values.yaml | head -n1)
         test "$VERSION" = "$APP_VERSION"
         test "$VERSION" = "$CHART_VERSION"
         test "$VERSION" = "$CHART_APP_VERSION"
