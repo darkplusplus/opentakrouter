@@ -2,5 +2,5 @@ apiVersion: v2
 name: opentakrouter
 description: OpenTakRouter Helm chart
 type: application
-version: 2.0.4
-appVersion: "2.0.4"
+version: 2.0.5
+appVersion: "2.0.5"

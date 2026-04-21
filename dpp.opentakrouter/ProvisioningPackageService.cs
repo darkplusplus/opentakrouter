@@ -111,7 +111,12 @@ namespace dpp.opentakrouter
                 if (string.Equals(extension, ".p12", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(extension, ".pfx", StringComparison.OrdinalIgnoreCase))
                 {
-                    return File.ReadAllBytes(options.TrustStoreCertificate);
+                    var trustStore = X509CertificateLoader.LoadPkcs12Collection(
+                        File.ReadAllBytes(options.TrustStoreCertificate),
+                        options.TrustStorePassword,
+                        X509KeyStorageFlags.DefaultKeySet,
+                        Pkcs12LoaderLimits.Defaults);
+                    return ExportTrustStore(ToTrustOnlyCollection(trustStore), options.TrustStorePassword);
                 }
 
                 var trustCertificates = LoadTrustCertificates(options.TrustStoreCertificate);
@@ -196,6 +201,17 @@ namespace dpp.opentakrouter
             return certificates.Export(X509ContentType.Pkcs12, password);
         }
 
+        private static X509Certificate2Collection ToTrustOnlyCollection(X509Certificate2Collection certificates)
+        {
+            var trustOnly = new X509Certificate2Collection();
+            foreach (var certificate in certificates)
+            {
+                trustOnly.Add(X509CertificateLoader.LoadCertificate(certificate.Export(X509ContentType.Cert)));
+            }
+
+            return trustOnly;
+        }
+
         private static byte[] BuildZip(string manifestXml, string atakConfigPrefXml, string itakConfigPrefXml, byte[] trustStore, byte[] clientCertificate)
         {
             using var stream = new MemoryStream();
@@ -207,9 +223,12 @@ namespace dpp.opentakrouter
                 WriteEntry(archive, "MANIFEST.xml", manifestXml);
                 WriteEntry(archive, "manifest.xml", manifestXml);
                 WriteEntry(archive, "config.pref", itakConfigPrefXml);
+                WriteEntry(archive, "preference.pref", itakConfigPrefXml);
                 WriteEntry(archive, "tak-server.pref", itakConfigPrefXml);
                 WriteEntry(archive, "server.p12", trustStore);
                 WriteEntry(archive, "iphone.p12", clientCertificate);
+                WriteEntry(archive, "cert/server.p12", trustStore);
+                WriteEntry(archive, "cert/iphone.p12", clientCertificate);
                 WriteEntry(archive, "certs/config.pref", atakConfigPrefXml);
                 WriteEntry(archive, "certs/caCert.p12", trustStore);
                 WriteEntry(archive, "certs/clientCert.p12", clientCertificate);

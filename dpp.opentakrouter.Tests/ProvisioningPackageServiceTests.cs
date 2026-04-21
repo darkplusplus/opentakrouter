@@ -48,12 +48,15 @@ namespace dpp.opentakrouter.Tests
             var rootManifest = ReadEntry(archive, "manifest.xml");
             var upperManifest = ReadEntry(archive, "MANIFEST.xml");
             var rootPreferences = ReadEntry(archive, "config.pref");
+            var rootPreferenceAlias = ReadEntry(archive, "preference.pref");
             var itakPreferences = ReadEntry(archive, "tak-server.pref");
             var atakPreferences = ReadEntry(archive, "certs/config.pref");
             var trustStore = archive.GetEntry("certs/caCert.p12");
             var clientCert = archive.GetEntry("certs/clientCert.p12");
             var rootTrustStore = archive.GetEntry("server.p12");
             var rootClientCert = archive.GetEntry("iphone.p12");
+            var iosTrustStore = archive.GetEntry("cert/server.p12");
+            var iosClientCert = archive.GetEntry("cert/iphone.p12");
 
             Assert.Contains("MissionPackageManifest", manifest);
             Assert.Contains("OTR_Enrollment.zip", manifest);
@@ -81,6 +84,7 @@ namespace dpp.opentakrouter.Tests
             Assert.Contains("cert/server.p12", rootPreferences);
             Assert.Contains("cert/iphone.p12", rootPreferences);
             Assert.Equal(rootPreferences, itakPreferences);
+            Assert.Equal(rootPreferences, rootPreferenceAlias);
 
             Assert.NotNull(trustStore);
             Assert.True(trustStore.Length > 0);
@@ -88,6 +92,10 @@ namespace dpp.opentakrouter.Tests
             Assert.True(clientCert.Length > 0);
             Assert.NotNull(rootTrustStore);
             Assert.NotNull(rootClientCert);
+            Assert.NotNull(iosTrustStore);
+            Assert.True(iosTrustStore.Length > 0);
+            Assert.NotNull(iosClientCert);
+            Assert.True(iosClientCert.Length > 0);
         }
 
         [Fact]
