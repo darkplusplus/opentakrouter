@@ -200,6 +200,8 @@ Provisioning material is mounted through a projected volume and can come from se
 - `provisioning.publicApiScheme` / `provisioning.publicApiPort` can override the generated package download URL
 - when ingress is enabled, the chart defaults that download URL toward the ingress-facing scheme and port
 
+The chart default for the provisioning trust artifact is now `trust.p12`. That aligns with the recommended production shape where the enrollment trust bundle is a prebuilt PKCS#12 instead of a single PEM certificate.
+
 The chart can also generate those provisioning secrets when explicitly enabled:
 
 - `provisioning.trustStore.create=true` with base64 content in `provisioning.trustStore.data`

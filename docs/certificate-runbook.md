@@ -234,7 +234,7 @@ Trust bundle:
 
 ```bash
 kubectl -n opentakrouter create secret generic opentakrouter-provisioning-trust \
-  --from-file=ca.crt=provisioning-trust.p12
+  --from-file=trust.p12=provisioning-trust.p12
 ```
 
 Client identity:
@@ -288,8 +288,8 @@ provisioning:
   enabled: true
   trustStore:
     secretName: opentakrouter-provisioning-trust
-    secretKey: ca.crt
-    fileName: ca.crt
+    secretKey: trust.p12
+    fileName: trust.p12
   trustStorePasswordSecretName: opentakrouter-provisioning-trust-password
   trustStorePasswordSecretKey: password
   clientCertificate:
