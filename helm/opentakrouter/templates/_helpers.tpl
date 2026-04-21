@@ -77,3 +77,19 @@ http
 {{- .Values.service.apiPort -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "opentakrouter.provisioningTrustStorePassword" -}}
+{{- if and .Values.provisioning.trustStorePasswordSecretName .Values.provisioning.trustStorePasswordSecretKey -}}
+{{- "" -}}
+{{- else -}}
+{{- default "" .Values.provisioning.trustStorePassword -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "opentakrouter.provisioningClientCertificatePassword" -}}
+{{- if and .Values.provisioning.clientCertificatePasswordSecretName .Values.provisioning.clientCertificatePasswordSecretKey -}}
+{{- "" -}}
+{{- else -}}
+{{- default "" .Values.provisioning.clientCertificatePassword -}}
+{{- end -}}
+{{- end -}}

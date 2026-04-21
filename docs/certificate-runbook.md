@@ -300,6 +300,8 @@ provisioning:
   clientCertificatePasswordSecretKey: password
 ```
 
+If you are migrating an older values file, the chart still accepts literal `provisioning.trustStorePassword` and `provisioning.clientCertificatePassword` values. Prefer the secret-based settings above for production.
+
 ## Verification Checklist
 
 Check the live server chain on the TAK listener:

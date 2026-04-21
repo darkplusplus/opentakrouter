@@ -217,6 +217,8 @@ Certificate passphrases should not be rendered into `values.yaml` or the generat
 - `provisioning.trustStorePasswordSecretName` / `provisioning.trustStorePasswordSecretKey`
 - `provisioning.clientCertificatePasswordSecretName` / `provisioning.clientCertificatePasswordSecretKey`
 
+For backward compatibility, the chart also still honors literal `provisioning.trustStorePassword` and `provisioning.clientCertificatePassword` values when secret refs are not configured. Secret refs take precedence.
+
 ## Operator UI Direction
 
 The current browser UI is intended to become an operator console, not a generic admin dashboard.

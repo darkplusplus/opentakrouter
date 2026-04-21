@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/darkplusplus/opentakrouter
   pullPolicy: IfNotPresent
-  tag: "2.0.3"
+  tag: "2.0.4"
 
 service:
   type: ClusterIP
@@ -32,8 +32,12 @@ provisioning:
   # Legacy/shared secret name fallback when both enrollment artifacts live in one secret.
   secretName: opentakrouter-provisioning
   mountPath: /provisioning
+  # Deprecated plaintext fallback for compatibility with older values files.
+  trustStorePassword: ""
   trustStorePasswordSecretName: ""
   trustStorePasswordSecretKey: ""
+  # Deprecated plaintext fallback for compatibility with older values files.
+  clientCertificatePassword: ""
   clientCertificatePasswordSecretName: ""
   clientCertificatePasswordSecretKey: ""
   # Trust bundle imported by the client package. This is typically your CA cert,

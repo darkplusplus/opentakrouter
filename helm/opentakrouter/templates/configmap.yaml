@@ -26,9 +26,9 @@ data:
           "publicApiScheme": {{ include "opentakrouter.publicApiScheme" . | quote }},
           "publicApiPort": {{ include "opentakrouter.publicApiPort" . }},
           "trustStoreCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.trustStore.fileName | quote }},
-          "trustStorePassword": "",
+          "trustStorePassword": {{ include "opentakrouter.provisioningTrustStorePassword" . | quote }},
           "clientCertificate": {{ printf "%s/%s" .Values.provisioning.mountPath .Values.provisioning.clientCertificate.fileName | quote }},
-          "clientCertificatePassword": "",
+          "clientCertificatePassword": {{ include "opentakrouter.provisioningClientCertificatePassword" . | quote }},
           "onReceiveDelete": true
         },
         "api": {
